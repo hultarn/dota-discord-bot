@@ -41,11 +41,12 @@ func init() {
 	ksvc := kungdotasvc.NewKungdotaService(logger,
 		kungdotarepo.NewKungdotaRepository(logger, httpC,
 			kungdotarepo.NewConfig(config.KungDotaID)),
+		config.KungDotaID,
 	)
 
 	ssvc := steamdotasvc.NewSteamdotaService(logger,
 		steamdotarepo.NewSteamdotaRepository(logger, httpC,
-			steamdotarepo.NewConfig(config.DotaID, config.SteamKey)),
+			steamdotarepo.NewConfig(config.SteamKey, config.DotaID)),
 	)
 
 	osvc := opendotasvc.NewOpendotaService(logger,

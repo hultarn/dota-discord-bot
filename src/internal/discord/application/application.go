@@ -39,6 +39,7 @@ func NewApplication(
 		DiscordService:   discordService,
 		KungdotaService:  kungdotaService,
 		SteamdotaService: steamdotaService,
+		OpendotaService:  opendotaService,
 	}
 }
 

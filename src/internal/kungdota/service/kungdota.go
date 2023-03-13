@@ -9,10 +9,10 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"sort"
 	"strconv"
 	"unsafe"
 
-	"github.com/bradfitz/slice"
 	"go.uber.org/zap"
 	"gonum.org/v1/gonum/stat/combin"
 )
@@ -37,10 +37,11 @@ type Properties struct {
 	ShuffledTeams kungdota.ShuffledTeams
 }
 
-func NewKungdotaService(logger *zap.Logger, kungdotaRepository repository.KungdotaRepository) KungdotaService {
+func NewKungdotaService(logger *zap.Logger, kungdotaRepository repository.KungdotaRepository, leagueId string) KungdotaService {
 	return &kungdotaService{
 		logger:             logger,
 		kungdotaRepository: kungdotaRepository,
+		leagueId:           leagueId,
 	}
 }
 
@@ -54,11 +55,6 @@ func (rx kungdotaService) convert(m opendota.OpenDotaGameObject) (kungdota.Match
 		fbClaimedPlayerKungID int
 		fbDiedPlayerKungID    int
 	)
-
-	// Match is not parsed
-	if len(m.Objectives) == 0 {
-		// TODO:
-	}
 
 	for _, o := range m.Objectives {
 		if o.Type == kungdota.ChatMessageFirstBlood {
@@ -97,6 +93,7 @@ func (rx kungdotaService) convert(m opendota.OpenDotaGameObject) (kungdota.Match
 				goto found
 			}
 		}
+		//TODO:
 		return kungdota.Match{}, errors.New("player not found")
 	found:
 	}
@@ -106,7 +103,7 @@ func (rx kungdotaService) convert(m opendota.OpenDotaGameObject) (kungdota.Match
 		Score:             []int{m.RadiantScore, m.DireScore},
 		Winner:            fmt.Sprintf("%d", ^*(*uint64)(unsafe.Pointer(&m.RadiantWin))&1), //Don't arrest me pls
 		DotaMatchId:       strconv.Itoa(m.MatchID),
-		LeagueId:          rx.leagueId,
+		LeagueId:          rx.leagueId, //,
 		DiedFirstBlood:    strconv.Itoa(fbClaimedPlayerKungID),
 		ClaimedFirstBlood: strconv.Itoa(fbDiedPlayerKungID),
 		CoolaStats:        coolaStats,
@@ -167,7 +164,7 @@ func (rx *kungdotaService) ShufflePlayers(ctx context.Context, n []string) error
 		})
 	}
 
-	slice.Sort(tList[:], func(i, j int) bool {
+	sort.Slice(tList, func(i, j int) bool {
 		return tList[i].elo < tList[j].elo
 	})
 

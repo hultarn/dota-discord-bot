@@ -11,6 +11,7 @@ import (
 
 type OpendotaService interface {
 	GetMatch(id string) (opendota.OpenDotaGameObject, error)
+	RequestMatch(id string) error
 }
 
 type opendotaService struct {
@@ -31,4 +32,8 @@ func NewOpendotaService(logger *zap.Logger, opendotaRepository repository.Opendo
 
 func (rx opendotaService) GetMatch(id string) (opendota.OpenDotaGameObject, error) {
 	return rx.opendotaRepository.GetMatch(context.Background(), id)
+}
+
+func (rx opendotaService) RequestMatch(id string) error {
+	return rx.opendotaRepository.RequestMatch(id)
 }

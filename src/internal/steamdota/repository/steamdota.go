@@ -51,7 +51,8 @@ func (rx steamdotaRepository) GetLatestGameID() (string, error) {
 }
 
 func (rx steamdotaRepository) GetAllMatches() (steamdota.Steamdota, error) {
-	r, _ := rx.httpClient.Get(fmt.Sprintf("%s%s&key=%s", endpoint, rx.config.id, rx.config.token))
+	s := fmt.Sprintf("%s%s&key=%s", endpoint, rx.config.id, rx.config.token)
+	r, _ := rx.httpClient.Get(s)
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
