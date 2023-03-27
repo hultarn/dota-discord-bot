@@ -104,8 +104,8 @@ func (rx kungdotaService) convert(m opendota.OpenDotaGameObject) (kungdota.Match
 		Winner:            fmt.Sprintf("%d", ^*(*uint64)(unsafe.Pointer(&m.RadiantWin))&1), //Don't arrest me pls
 		DotaMatchId:       strconv.Itoa(m.MatchID),
 		LeagueId:          rx.leagueId, //,
-		DiedFirstBlood:    strconv.Itoa(fbClaimedPlayerKungID),
-		ClaimedFirstBlood: strconv.Itoa(fbDiedPlayerKungID),
+		DiedFirstBlood:    strconv.Itoa(fbDiedPlayerKungID),
+		ClaimedFirstBlood: strconv.Itoa(fbClaimedPlayerKungID),
 		CoolaStats:        coolaStats,
 	}
 
