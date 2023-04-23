@@ -13,7 +13,7 @@ var (
 	}
 
 	UpdateCommandHandler = func(s *discordgo.Session, i *discordgo.InteractionCreate, app application) {
-		app.Logger.Info(fmt.Sprintf("UpdateCommandHandler: update started by user: %s", i.Member.Nick))
+		app.Logger.Info(fmt.Sprintf("UpdateCommandHandler: update started by user: %s#%s", i.Member.User.Username, i.Member.User.Discriminator))
 
 		id, err := (*app.SteamdotaService).GetLatestGameID()
 		if err != nil {

@@ -21,6 +21,10 @@ var (
 	}
 
 	AddGameCommandHandler = func(s *discordgo.Session, i *discordgo.InteractionCreate, app application) {
+		// TODO: Add permissions?
+
+		app.Logger.Info(fmt.Sprintf("AddGameCommandHandler: addgame started by user: %s#%s", i.Member.User.Username, i.Member.User.Discriminator))
+
 		//TODO: Fix
 		tmp := i.ApplicationCommandData().Options
 		id := (tmp[0].Value).(string)

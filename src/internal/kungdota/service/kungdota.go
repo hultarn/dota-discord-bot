@@ -5,7 +5,6 @@ import (
 	"dota-discord-bot/src/internal/kungdota"
 	"dota-discord-bot/src/internal/kungdota/repository"
 	"dota-discord-bot/src/internal/opendota"
-	"errors"
 	"fmt"
 	"math"
 	"math/rand"
@@ -23,6 +22,8 @@ type KungdotaService interface {
 	ShufflePlayers(ctx context.Context, ids []string) error
 	GetProperties() Properties
 	PostMatch(m opendota.OpenDotaGameObject) error
+	SignUp(ctx context.Context, username string, i int) (map[string][]string, error)
+	Update(ctx context.Context, username string, i int) (map[string][]string, error)
 }
 
 type kungdotaService struct {
@@ -54,6 +55,8 @@ func (rx kungdotaService) convert(m opendota.OpenDotaGameObject) (kungdota.Match
 
 		fbClaimedPlayerKungID int
 		fbDiedPlayerKungID    int
+
+		tmpID string
 	)
 
 	for _, o := range m.Objectives {
@@ -67,8 +70,8 @@ func (rx kungdotaService) convert(m opendota.OpenDotaGameObject) (kungdota.Match
 	coolaStats := make([]kungdota.CoolaStats, 0)
 	for _, pOpen := range m.Players {
 		for _, p := range pAll.Players {
-			sad := p.Steam32ID
-			if fmt.Sprintf("%d", pOpen.AccountID) == sad {
+			tmpID = p.Steam32ID
+			if fmt.Sprintf("%d", pOpen.AccountID) == tmpID {
 				if pOpen.PlayerSlot == fbClaimedPlayerSlot {
 					fbClaimedPlayerKungID = p.ID
 				}
@@ -94,7 +97,7 @@ func (rx kungdotaService) convert(m opendota.OpenDotaGameObject) (kungdota.Match
 			}
 		}
 		//TODO:
-		return kungdota.Match{}, errors.New("player not found")
+		return kungdota.Match{}, fmt.Errorf("player not found ,%s", tmpID)
 	found:
 	}
 
@@ -113,7 +116,10 @@ func (rx kungdotaService) convert(m opendota.OpenDotaGameObject) (kungdota.Match
 }
 
 func (rx kungdotaService) PostMatch(m opendota.OpenDotaGameObject) error {
-	t, _ := rx.convert(m)
+	t, err := rx.convert(m)
+	if err != nil {
+		return err
+	}
 
 	return rx.kungdotaRepository.PostMatch(t)
 }
@@ -204,4 +210,12 @@ func (rx *kungdotaService) ShufflePlayers(ctx context.Context, n []string) error
 	// rx.properties.ShuffledTeams.TeamTwo = kungdota.Players2{Players: asd2}
 
 	return nil
+}
+
+func (rx *kungdotaService) SignUp(ctx context.Context, username string, i int) (map[string][]string, error) {
+	return rx.kungdotaRepository.SignUp(ctx, username, i)
+}
+
+func (rx *kungdotaService) Update(ctx context.Context, username string, i int) (map[string][]string, error) {
+	return rx.kungdotaRepository.Update(ctx, username, i)
 }

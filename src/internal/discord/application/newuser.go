@@ -7,13 +7,15 @@ import (
 )
 
 var (
-	MoveCmd = discordgo.ApplicationCommand{
-		Name:        "move",
-		Description: "moves players after shuffle",
+	NewUserCmd = discordgo.ApplicationCommand{
+		Name:        "new_user",
+		Description: "new user",
 	}
 
-	MoveCommandHandler = func(s *discordgo.Session, i *discordgo.InteractionCreate, app application) {
-		app.Logger.Info(fmt.Sprintf("MoveCommandHandler: move started by user: %s#%s", i.Member.User.Username, i.Member.User.Discriminator))
+	NewUserCommandHandler = func(s *discordgo.Session, i *discordgo.InteractionCreate, app application) {
+		app.Logger.Info(fmt.Sprintf("NewUserCommandHandler: new_user started by user: %s#%s", i.Member.User.Username, i.Member.User.Discriminator))
+
+		//if todo add not already user check
 
 		props := (*app.KungdotaService).GetProperties().ShuffledTeams
 
@@ -33,7 +35,3 @@ var (
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{})
 	}
 )
-
-func move() {
-	fmt.Println()
-}

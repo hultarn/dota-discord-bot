@@ -1,6 +1,7 @@
 package application
 
 import (
+	dynamodbsvc "dota-discord-bot/src/internal/dynamodb/service"
 	kungdotasvc "dota-discord-bot/src/internal/kungdota/service"
 	opendotasvc "dota-discord-bot/src/internal/opendota/service"
 	steamdotasvc "dota-discord-bot/src/internal/steamdota/service"
@@ -17,6 +18,7 @@ var (
 
 type Application interface {
 	Run()
+	RunSignUp()
 }
 
 type application struct {
@@ -25,6 +27,7 @@ type application struct {
 	KungdotaService  *kungdotasvc.KungdotaService
 	SteamdotaService *steamdotasvc.SteamdotaService
 	OpendotaService  *opendotasvc.OpendotaService
+	DynamodbService  *dynamodbsvc.DynamodbService
 }
 
 func NewApplication(
@@ -33,6 +36,7 @@ func NewApplication(
 	kungdotaService *kungdotasvc.KungdotaService,
 	steamdotaService *steamdotasvc.SteamdotaService,
 	opendotaService *opendotasvc.OpendotaService,
+	dynamodbService *dynamodbsvc.DynamodbService,
 ) Application {
 	return &application{
 		Logger:           logger,
@@ -40,7 +44,19 @@ func NewApplication(
 		KungdotaService:  kungdotaService,
 		SteamdotaService: steamdotaService,
 		OpendotaService:  opendotaService,
+		DynamodbService:  dynamodbService,
 	}
+}
+
+func (rx *application) RunSignUp() {
+	(*rx.DiscordService).SignUpStart(rx)
+
+	defer (*rx.DiscordService).GetProperties().S.Close()
+
+	// TODO: Better way?
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt)
+	<-stop
 }
 
 func (rx *application) Run() {
@@ -56,5 +72,4 @@ func (rx *application) Run() {
 	<-stop
 
 	(*rx.DiscordService).RemoveCommands(rx)
-
 }

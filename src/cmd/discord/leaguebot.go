@@ -15,11 +15,11 @@ import (
 )
 
 var startDiscordBotCmd = &cobra.Command{
-	Use: "start-discord-bot",
-	Run: startDiscordBot,
+	Use: "start-league-bot",
+	Run: startLeagueBot,
 }
 
-var app application.Application
+var leagueBot application.Application
 
 func init() {
 	config, err := NewConfig()
@@ -54,11 +54,11 @@ func init() {
 			opendotarepo.NewConfig(config.SteamKey)),
 	)
 
-	app = application.NewApplication(logger, &dsvc, &ksvc, &ssvc, &osvc)
+	leagueBot = application.NewApplication(logger, &dsvc, &ksvc, &ssvc, &osvc, nil)
 }
 
-func startDiscordBot(cmd *cobra.Command, _ []string) {
-	app.Run()
+func startLeagueBot(cmd *cobra.Command, _ []string) {
+	leagueBot.Run()
 }
 
 func init() {

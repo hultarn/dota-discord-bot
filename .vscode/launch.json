@@ -5,16 +5,26 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Discord",
+            "name": "discord-start-league-bot",
             "type": "go",
             "request": "launch",
             "mode": "debug",
             "program": "${workspaceFolder}/main.go",
             "args": [
                 "discord",
-                "start-discord-bot",
+                "start-league-bot",
             ],
-            // "dlvFlags": ["--check-go-version=false"]
+        },
+        {
+            "name": "discord-start-signup-bot",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}/main.go",
+            "args": [
+                "discord",
+                "start-signup-bot",
+            ],
         },
     ]
 }

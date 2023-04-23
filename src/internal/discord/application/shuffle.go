@@ -77,7 +77,7 @@ var (
 	}
 
 	ShuffleCommandHandler = func(s *discordgo.Session, i *discordgo.InteractionCreate, app application) {
-		app.Logger.Info(fmt.Sprintf("ShuffleCommandHandler: shuffle started by user: %s", i.Member.Nick))
+		app.Logger.Info(fmt.Sprintf("ShuffleCommandHandler: shuffle started by user: %s#%s", i.Member.User.Username, i.Member.User.Discriminator))
 
 		if err := (*app.KungdotaService).ShufflePlayers(context.Background(), getNames(i)); err != nil {
 			app.Logger.Error(fmt.Sprintf("ShuffleCommandHandler ShufflePlayers failed %s", err))
@@ -142,7 +142,6 @@ func createResponseData(p service.Properties) *discordgo.InteractionResponseData
 	}
 
 	return &discordgo.InteractionResponseData{
-		// TTS:     true,
 		Components: []discordgo.MessageComponent{
 			discordgo.ActionsRow{
 				Components: btns,
