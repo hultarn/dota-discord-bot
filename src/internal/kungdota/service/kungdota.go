@@ -23,7 +23,7 @@ type KungdotaService interface {
 	GetProperties() Properties
 	PostMatch(m opendota.OpenDotaGameObject) error
 	SignUp(ctx context.Context, username string, i int) (map[string][]string, error)
-	Update(ctx context.Context, username string, i int) (map[string][]string, error)
+	Update(ctx context.Context, username string) (map[string][]string, error)
 }
 
 type kungdotaService struct {
@@ -216,6 +216,6 @@ func (rx *kungdotaService) SignUp(ctx context.Context, username string, i int) (
 	return rx.kungdotaRepository.SignUp(ctx, username, i)
 }
 
-func (rx *kungdotaService) Update(ctx context.Context, username string, i int) (map[string][]string, error) {
-	return rx.kungdotaRepository.Update(ctx, username, i)
+func (rx *kungdotaService) Update(ctx context.Context, username string) (map[string][]string, error) {
+	return rx.kungdotaRepository.Update(ctx, username)
 }

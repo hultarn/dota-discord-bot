@@ -15,6 +15,8 @@ import (
 type DynamodbRepository interface {
 	GetByCurrentWeekAndYear(ctx context.Context) (string, error)
 	InsertCurrentWeekAndYear(ctx context.Context, id string) error
+	// GetListCurrentWeekAndYear(ctx context.Context) (string, error)
+	// InsertListCurrentWeekAndYear(ctx context.Context, id string) error
 }
 
 type dynamodbRepository struct {
@@ -31,6 +33,13 @@ type Entry struct {
 	Week         string `dynamodbav:"week"`
 	Year         string `dynamodbav:"year"`
 	MessageID    string `dynamodbav:"message_id"`
+	CreationDate string `dynamodbav:"creation_date"`
+}
+
+type EntrySignup struct {
+	Week         string `dynamodbav:"week"`
+	Year         string `dynamodbav:"year"`
+	DiscordID    string `dynamodbav:"message_id"`
 	CreationDate string `dynamodbav:"creation_date"`
 }
 

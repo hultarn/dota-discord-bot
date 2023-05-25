@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/bwmarrin/discordgo"
 	"go.uber.org/zap"
 )
@@ -124,6 +123,7 @@ func (rx *discordService) SignUpStart(app *application) error {
 		switch v := i.MessageComponentData().CustomID; v {
 		case gameOneBtn:
 			newList, _ = (*app.KungdotaService).SignUp(context.Background(), i.Interaction.Member.User.Username, 0)
+			// (*app.DynamodbService).
 		case gameTwoBtn:
 			newList, _ = (*app.KungdotaService).SignUp(context.Background(), i.Interaction.Member.User.Username, 1)
 		case gameThreeBtn:
@@ -131,27 +131,8 @@ func (rx *discordService) SignUpStart(app *application) error {
 		case gameClearBtn:
 
 		case gameUpdateBtn:
-			newList, _ := (*app.KungdotaService).Update(context.Background(), i.Interaction.Member.User.Username, 1)
-
-			tmp := ""
-			for s, k := range newList {
-				tmp += s + ": "
-				for _, k := range k {
-					tmp += k + ", "
-				}
-				tmp += "\n"
-				tmp += "tot: " + fmt.Sprintf("%d", len(k))
-				tmp += "\n"
-			}
-
-			embeds[0].Description = tmp
-
-			s.ChannelMessageEditComplex(&discordgo.MessageEdit{
-				Content: aws.String(""),
-				Embeds:  embeds,
-				ID:      id,
-				Channel: "801048845055426560",
-			})
+			newList, _ = (*app.KungdotaService).Update(context.Background(), i.Interaction.Member.User.Username)
+			// (*app.DynamodbService).
 		}
 
 		tmp := ""

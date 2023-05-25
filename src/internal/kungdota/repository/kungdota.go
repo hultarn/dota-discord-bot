@@ -22,7 +22,7 @@ type KungdotaRepository interface {
 	PostMatch(m kungdota.Match) error
 	GetAllPlayers() (kungdota.Players2, error)
 	SignUp(ctx context.Context, username string, i int) (map[string][]string, error)
-	Update(ctx context.Context, username string, i int) (map[string][]string, error)
+	Update(ctx context.Context, username string) (map[string][]string, error)
 }
 
 type kungdotaRepository struct {
@@ -513,7 +513,7 @@ func (rx kungdotaRepository) SignUp(ctx context.Context, username string, i int)
 	return list.format(), nil
 }
 
-func (rx kungdotaRepository) Update(ctx context.Context, username string, i int) (map[string][]string, error) {
+func (rx kungdotaRepository) Update(ctx context.Context, username string) (map[string][]string, error) {
 	urls, err := rx.getURL()
 	if err != nil {
 		return nil, err
