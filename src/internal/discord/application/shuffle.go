@@ -79,7 +79,12 @@ var (
 	ShuffleCommandHandler = func(s *discordgo.Session, i *discordgo.InteractionCreate, app application) {
 		app.Logger.Info(fmt.Sprintf("ShuffleCommandHandler: shuffle started by user: %s#%s", i.Member.User.Username, i.Member.User.Discriminator))
 
-		if err := (*app.KungdotaService).ShufflePlayers(context.Background(), getNames(i)); err != nil {
+		p, err := (*app.KungdotaService).GetPlayersByNames(context.Background(), getNames(i))
+		if err != nil {
+			app.Logger.Error(fmt.Sprintf("ShuffleCommandHandler ShufflePlayers failed %s", err))
+		}
+
+		if err := (*app.KungdotaService).ShufflePlayers(context.Background(), p); err != nil {
 			app.Logger.Error(fmt.Sprintf("ShuffleCommandHandler ShufflePlayers failed %s", err))
 			return
 		}

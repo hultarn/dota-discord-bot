@@ -17,7 +17,7 @@ type DynamodbRepository interface {
 	GetCurrent(ctx context.Context) (Entry, error)
 	GetByCurrentWeekAndYear(ctx context.Context) (string, error)
 	InsertCurrentWeekAndYear(ctx context.Context, id string) error
-	GetCurrentPlayers(ctx context.Context) (string, error)
+	GetCurrentPlayers(ctx context.Context, idx int) ([]string, error)
 	InsertPlayer(ctx context.Context, id string, i int) error
 	ClearPlayers(ctx context.Context) error
 }
@@ -129,14 +129,25 @@ func (rx dynamodbRepository) InsertCurrentWeekAndYear(ctx context.Context, id st
 	return nil
 }
 
-func (rx dynamodbRepository) GetCurrentPlayers(ctx context.Context) (string, error) {
+func (rx dynamodbRepository) GetCurrentPlayers(ctx context.Context, idx int) ([]string, error) {
 	entry, err := rx.GetCurrent(ctx)
 	if err != nil {
 		rx.logger.Error("DynamodbRepository.GetByCurrentWeekAndYear failed")
-		return "", err
+		return nil, err
 	}
 
-	return entry.MessageID, nil
+	var ret []string
+
+	switch idx {
+	case 1:
+		ret = entry.Game_1
+	case 2:
+		ret = entry.Game_2
+	case 3:
+		ret = entry.Game_3
+	}
+
+	return ret, nil
 }
 
 func (rx dynamodbRepository) InsertPlayer(ctx context.Context, id string, i int) error {
@@ -164,7 +175,7 @@ func (rx dynamodbRepository) InsertPlayer(ctx context.Context, id string, i int)
 		return nil
 	}
 
-	if len(*tmp) > 10 {
+	if len(*tmp) >= 10 {
 		rx.logger.Error("DynamodbRepository.InsertPlayer failed, game is full")
 		return nil
 	}

@@ -40,6 +40,7 @@ type discordService struct {
 
 type config struct {
 	token     string
+	SignUp    string
 	tokenType string
 	teamOne   string
 	teamTwo   string
@@ -47,14 +48,16 @@ type config struct {
 
 type properties struct {
 	S       *discordgo.Session
+	SignUp  string
 	TeamOne string
 	TeamTwo string
 }
 
-func NewConfig(token string, tokenType string, teamOne string, teamTwo string) config {
+func NewConfig(token string, tokenType string, signUp string, teamOne string, teamTwo string) config {
 	return config{
 		token:     token,
 		tokenType: tokenType,
+		SignUp:    signUp,
 		teamOne:   teamOne,
 		teamTwo:   teamTwo,
 	}
@@ -66,6 +69,7 @@ func NewDiscordService(logger *zap.Logger, config config) DiscordService {
 		logger: logger,
 	}
 
+	r.props.SignUp = config.SignUp
 	r.props.TeamOne = config.teamOne
 	r.props.TeamTwo = config.teamTwo
 
@@ -81,12 +85,13 @@ func (rx *discordService) SignUpStart(app *application) error {
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		rx.logger.Info(fmt.Sprintf("logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator))
 
-		id, _ := (*app.DynamodbService).GetByCurrentWeekAndYear(context.Background())
-		// if err != nil {
-		// 	return
-		// }
+		id, err := (*app.DynamodbService).GetByCurrentWeekAndYear(context.Background())
+		if err != nil {
+			return
+		}
+
 		if id == "" {
-			m, err := s.ChannelMessageSendComplex("801048845055426560", createResponseData2())
+			m, err := s.ChannelMessageSendComplex((*app.DiscordService).GetProperties().SignUp, createResponseDataSignup())
 			if err != nil {
 				return
 			}
@@ -111,25 +116,23 @@ func (rx *discordService) SignUpStart(app *application) error {
 			return
 		}
 
-		embeds := []*discordgo.MessageEmbed{
-			{
-				Type:  "rich",
-				Title: `Game_1: 19:30`,
-				Color: 0xff00ae,
-			},
-			{
-				Type:  "rich",
-				Title: `Game_2: 20:45`,
-				Color: 0xff00ae,
-			},
-			{
-				Type:  "rich",
-				Title: `Game_3: 22:00`,
-				Color: 0xff00ae,
-			},
+		id, err = (*app.DynamodbService).GetByCurrentWeekAndYear(context.Background())
+		if err != nil {
+			return
 		}
 
-		_, err = (*app.KungdotaService).GetPlayers(context.Background(), []string{i.Interaction.Member.User.ID})
+		if id == "" {
+			m, err := s.ChannelMessageSendComplex((*app.DiscordService).GetProperties().SignUp, createResponseDataSignup())
+			if err != nil {
+				return
+			}
+
+			if err := (*app.DynamodbService).InsertCurrentWeekAndYear(context.Background(), m.ID); err != nil {
+				return
+			}
+		}
+
+		_, err = (*app.KungdotaService).GetPlayersByDiscordIDs(context.Background(), []string{i.Interaction.Member.User.ID})
 		if err != nil {
 			rx.logger.Info(fmt.Sprintf("Player %s doesn't exist", i.Interaction.Member.User.Username))
 
@@ -183,21 +186,22 @@ func (rx *discordService) SignUpStart(app *application) error {
 			rx.logger.Error(fmt.Sprintln(err))
 		}
 
-		d1, err := (*app.KungdotaService).GetPlayers(context.Background(), e.Game_1)
+		d1, err := (*app.KungdotaService).GetPlayersByDiscordIDs(context.Background(), e.Game_1)
 		if err != nil {
 			rx.logger.Error(fmt.Sprintln(err))
 		}
 
-		d2, err := (*app.KungdotaService).GetPlayers(context.Background(), e.Game_2)
+		d2, err := (*app.KungdotaService).GetPlayersByDiscordIDs(context.Background(), e.Game_2)
 		if err != nil {
 			rx.logger.Error(fmt.Sprintln(err))
 		}
 
-		d3, err := (*app.KungdotaService).GetPlayers(context.Background(), e.Game_3)
+		d3, err := (*app.KungdotaService).GetPlayersByDiscordIDs(context.Background(), e.Game_3)
 		if err != nil {
 			rx.logger.Error(fmt.Sprintln(err))
 		}
 
+		embeds := getEmbeds()
 		embeds[0].Description = strings.Join(d1, ", ")
 		embeds[1].Description = strings.Join(d2, ", ")
 		embeds[2].Description = strings.Join(d3, ", ")
@@ -205,7 +209,7 @@ func (rx *discordService) SignUpStart(app *application) error {
 		s.ChannelMessageEditComplex(&discordgo.MessageEdit{
 			Embeds:  embeds,
 			ID:      id,
-			Channel: "801048845055426560",
+			Channel: (*app.DiscordService).GetProperties().SignUp,
 		})
 
 	})
@@ -219,7 +223,7 @@ func (rx *discordService) SignUpStart(app *application) error {
 	return nil
 }
 
-func createResponseData2() *discordgo.MessageSend {
+func createResponseDataSignup() *discordgo.MessageSend {
 	btns := []discordgo.MessageComponent{
 		discordgo.Button{
 			Label:    "Game_1",
@@ -253,14 +257,7 @@ func createResponseData2() *discordgo.MessageSend {
 		},
 	}
 
-	embeds := []*discordgo.MessageEmbed{
-		{
-			Type:        "rich",
-			Title:       `Time                19:30    20:45    22:00`,
-			Description: fmt.Sprintf("%d\n%d\n%d", 1, 2, 3),
-			Color:       0xff00ae,
-		},
-	}
+	embeds := getEmbeds()
 
 	return &discordgo.MessageSend{
 		Components: []discordgo.MessageComponent{
@@ -269,6 +266,27 @@ func createResponseData2() *discordgo.MessageSend {
 			},
 		},
 		Embeds: embeds,
+	}
+}
+
+func getEmbeds() []*discordgo.MessageEmbed {
+	// TODO add times from .env
+	return []*discordgo.MessageEmbed{
+		{
+			Type:  "rich",
+			Title: `Game_1: 19:30`,
+			Color: 0xff00ae,
+		},
+		{
+			Type:  "rich",
+			Title: `Game_2: 20:45`,
+			Color: 0xff00ae,
+		},
+		{
+			Type:  "rich",
+			Title: `Game_3: 22:00`,
+			Color: 0xff00ae,
+		},
 	}
 }
 

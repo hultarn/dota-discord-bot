@@ -18,8 +18,8 @@ import (
 
 type KungdotaService interface {
 	GetPlayersByNames(ctx context.Context, ids []string) (kungdota.Players2, error)
-	GetPlayers(ctx context.Context, ids []string) ([]string, error)
-	ShufflePlayers(ctx context.Context, ids []string) error
+	GetPlayersByDiscordIDs(ctx context.Context, ids []string) ([]string, error)
+	ShufflePlayers(ctx context.Context, p kungdota.Players2) error
 	GetProperties() Properties
 	PostMatch(m opendota.OpenDotaGameObject) error
 	SignUp(ctx context.Context, username string, i int) (map[string][]string, error)
@@ -128,7 +128,7 @@ func (rx kungdotaService) GetPlayersByNames(ctx context.Context, ids []string) (
 	return rx.kungdotaRepository.GetByNames(ctx, ids)
 }
 
-func (rx kungdotaService) GetPlayers(ctx context.Context, ids []string) ([]string, error) {
+func (rx kungdotaService) GetPlayersByDiscordIDs(ctx context.Context, ids []string) ([]string, error) {
 	return rx.kungdotaRepository.GetByDiscordIDs(ctx, ids)
 }
 
@@ -136,9 +136,7 @@ func (rx *kungdotaService) GetProperties() Properties {
 	return rx.properties
 }
 
-func (rx *kungdotaService) ShufflePlayers(ctx context.Context, n []string) error {
-	p, _ := rx.GetPlayersByNames(context.Background(), n)
-
+func (rx *kungdotaService) ShufflePlayers(ctx context.Context, p kungdota.Players2) error {
 	//Magic :)
 	pList := make([][][]int, 0)
 	list := combin.Combinations(10, 5)

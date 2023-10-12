@@ -1,7 +1,10 @@
 package discord
 
 import (
+	"context"
 	"dota-discord-bot/src/internal/discord/application"
+	dynamodbrepo "dota-discord-bot/src/internal/dynamodb/repository"
+	dynamodbsvc "dota-discord-bot/src/internal/dynamodb/service"
 	kungdotarepo "dota-discord-bot/src/internal/kungdota/repository"
 	kungdotasvc "dota-discord-bot/src/internal/kungdota/service"
 	opendotarepo "dota-discord-bot/src/internal/opendota/repository"
@@ -10,6 +13,7 @@ import (
 	steamdotasvc "dota-discord-bot/src/internal/steamdota/service"
 	"net/http"
 
+	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )
@@ -27,13 +31,18 @@ func init() {
 		panic(err)
 	}
 
+	awsConfig, err := awsconfig.LoadDefaultConfig(context.Background())
+	if err != nil {
+		panic(err)
+	}
+
 	logger, err := zap.NewProduction()
 	if err != nil {
 		panic(err)
 	}
 
 	dsvc := application.NewDiscordService(logger,
-		application.NewConfig(config.Token, "Bot", config.TeamOne, config.TeamTwo),
+		application.NewConfig(config.Token, "Bot", config.SignUp, config.TeamOne, config.TeamTwo),
 	)
 
 	httpC := http.Client{}
@@ -54,7 +63,12 @@ func init() {
 			opendotarepo.NewConfig(config.SteamKey)),
 	)
 
-	leagueBot = application.NewApplication(logger, &dsvc, &ksvc, &ssvc, &osvc, nil, nil)
+	dydbsvc := dynamodbsvc.NewDynamodbService(logger,
+		dynamodbrepo.NewDynamodbRepository(logger,
+			dynamodbrepo.NewConfig(awsConfig)),
+	)
+
+	leagueBot = application.NewApplication(logger, &dsvc, &ksvc, &ssvc, &osvc, &dydbsvc, nil)
 }
 
 func startLeagueBot(cmd *cobra.Command, _ []string) {

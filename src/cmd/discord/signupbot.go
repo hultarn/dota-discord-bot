@@ -45,7 +45,7 @@ func init() {
 	}
 
 	dsvc := application.NewDiscordService(logger,
-		application.NewConfig(config.Token, "Bot", config.TeamOne, config.TeamTwo),
+		application.NewConfig(config.Token, "Bot", config.SignUp, config.TeamOne, config.TeamTwo),
 	)
 
 	jar, err := cookiejar.New(nil)

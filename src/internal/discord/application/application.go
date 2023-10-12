@@ -69,7 +69,7 @@ func (rx *application) Run() {
 	(*rx.DiscordService).Start(rx)
 	(*rx.DiscordService).AddHandlers(rx)
 	(*rx.DiscordService).AddCommands(rx)
-
+	// (*rx.DiscordService).RemoveCommands(rx)
 	defer (*rx.DiscordService).GetProperties().S.Close()
 
 	// TODO: Better way?

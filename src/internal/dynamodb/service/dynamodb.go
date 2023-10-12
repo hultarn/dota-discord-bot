@@ -11,7 +11,7 @@ type DynamodbService interface {
 	GetCurrent(ctx context.Context) (repository.Entry, error)
 	GetByCurrentWeekAndYear(ctx context.Context) (string, error)
 	InsertCurrentWeekAndYear(ctx context.Context, id string) error
-	GetCurrentPlayers(ctx context.Context) (string, error)
+	GetCurrentPlayers(ctx context.Context, idx int) ([]string, error)
 	InsertPlayer(ctx context.Context, id string, i int) error
 	ClearPlayers(ctx context.Context) error
 }
@@ -40,8 +40,8 @@ func (rx dynamodbService) InsertCurrentWeekAndYear(ctx context.Context, id strin
 	return rx.dynamodbRepository.InsertCurrentWeekAndYear(ctx, id)
 }
 
-func (rx dynamodbService) GetCurrentPlayers(ctx context.Context) (string, error) {
-	return rx.dynamodbRepository.GetCurrentPlayers(ctx)
+func (rx dynamodbService) GetCurrentPlayers(ctx context.Context, idx int) ([]string, error) {
+	return rx.dynamodbRepository.GetCurrentPlayers(ctx, idx)
 }
 
 func (rx dynamodbService) InsertPlayer(ctx context.Context, id string, i int) error {
