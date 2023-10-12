@@ -3,6 +3,8 @@ package application
 import (
 	"context"
 	"fmt"
+	"slices"
+	"strings"
 
 	"github.com/bwmarrin/discordgo"
 	"go.uber.org/zap"
@@ -79,10 +81,10 @@ func (rx *discordService) SignUpStart(app *application) error {
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		rx.logger.Info(fmt.Sprintf("logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator))
 
-		id, err := (*app.DynamodbService).GetByCurrentWeekAndYear(context.Background())
-		if err != nil {
-			return
-		}
+		id, _ := (*app.DynamodbService).GetByCurrentWeekAndYear(context.Background())
+		// if err != nil {
+		// 	return
+		// }
 		if id == "" {
 			m, err := s.ChannelMessageSendComplex("801048845055426560", createResponseData2())
 			if err != nil {
@@ -111,42 +113,94 @@ func (rx *discordService) SignUpStart(app *application) error {
 
 		embeds := []*discordgo.MessageEmbed{
 			{
-				Type:        "rich",
-				Title:       `Time                19:30    20:45    22:00`,
-				Description: fmt.Sprintf("%d\n%d\n%d", 1, 2, 3),
-				Color:       0xff00ae,
+				Type:  "rich",
+				Title: `Game_1: 19:30`,
+				Color: 0xff00ae,
+			},
+			{
+				Type:  "rich",
+				Title: `Game_2: 20:45`,
+				Color: 0xff00ae,
+			},
+			{
+				Type:  "rich",
+				Title: `Game_3: 22:00`,
+				Color: 0xff00ae,
 			},
 		}
 
-		var newList map[string][]string
+		_, err = (*app.KungdotaService).GetPlayers(context.Background(), []string{i.Interaction.Member.User.ID})
+		if err != nil {
+			rx.logger.Info(fmt.Sprintf("Player %s doesn't exist", i.Interaction.Member.User.Username))
+
+			// TOOD Fix automated signup:
+			ch, err := s.UserChannelCreate(i.Interaction.Member.User.ID)
+			if err != nil {
+				rx.logger.Error(fmt.Sprintln(err))
+			}
+
+			_, err = s.ChannelMessageSend(ch.ID, "Seems like you don't exist.. you should probably talk to someone.")
+			if err != nil {
+				rx.logger.Error(fmt.Sprintln(err))
+			}
+
+			return
+		}
 
 		switch v := i.MessageComponentData().CustomID; v {
 		case gameOneBtn:
-			newList, _ = (*app.KungdotaService).SignUp(context.Background(), i.Interaction.Member.User.Username, 0)
-			// (*app.DynamodbService).
+			//newList, err = (*app.KungdotaService).SignUp(context.Background(), i.Interaction.Member.User.Username, 0)
+			(*app.DynamodbService).InsertPlayer(context.Background(), i.Interaction.Member.User.ID, 0)
 		case gameTwoBtn:
-			newList, _ = (*app.KungdotaService).SignUp(context.Background(), i.Interaction.Member.User.Username, 1)
+			// newList, err = (*app.KungdotaService).SignUp(context.Background(), i.Interaction.Member.User.Username, 1)
+			(*app.DynamodbService).InsertPlayer(context.Background(), i.Interaction.Member.User.ID, 1)
 		case gameThreeBtn:
-			newList, _ = (*app.KungdotaService).SignUp(context.Background(), i.Interaction.Member.User.Username, 2)
+			// newList, err = (*app.KungdotaService).SignUp(context.Background(), i.Interaction.Member.User.Username, 2)
+			(*app.DynamodbService).InsertPlayer(context.Background(), i.Interaction.Member.User.ID, 2)
 		case gameClearBtn:
+			if slices.Contains(app.Misc.SuperDuperAdmin, i.Interaction.Member.User.ID) {
+				(*app.DynamodbService).ClearPlayers(context.Background())
+			} else {
+				ch, err := s.UserChannelCreate(i.Interaction.Member.User.ID)
+				if err != nil {
+					rx.logger.Error(fmt.Sprintln(err))
+				}
 
-		case gameUpdateBtn:
-			newList, _ = (*app.KungdotaService).Update(context.Background(), i.Interaction.Member.User.Username)
-			// (*app.DynamodbService).
-		}
-
-		tmp := ""
-		for s, k := range newList {
-			tmp += s + ": "
-			for _, k := range k {
-				tmp += k + ", "
+				_, err = s.ChannelMessageSend(ch.ID, "Ät skit.")
+				if err != nil {
+					rx.logger.Error(fmt.Sprintln(err))
+				}
 			}
-			tmp += "\n"
-			tmp += fmt.Sprintf("%d", len(k))
-			tmp += "\n"
 		}
 
-		embeds[0].Description = tmp
+		// if err != nil {
+		// 	rx.logger.Error(fmt.Sprintf("failed to signup %v", err))
+		// 	return
+		// }
+
+		e, err := (*app.DynamodbService).GetCurrent(context.Background())
+		if err != nil {
+			rx.logger.Error(fmt.Sprintln(err))
+		}
+
+		d1, err := (*app.KungdotaService).GetPlayers(context.Background(), e.Game_1)
+		if err != nil {
+			rx.logger.Error(fmt.Sprintln(err))
+		}
+
+		d2, err := (*app.KungdotaService).GetPlayers(context.Background(), e.Game_2)
+		if err != nil {
+			rx.logger.Error(fmt.Sprintln(err))
+		}
+
+		d3, err := (*app.KungdotaService).GetPlayers(context.Background(), e.Game_3)
+		if err != nil {
+			rx.logger.Error(fmt.Sprintln(err))
+		}
+
+		embeds[0].Description = strings.Join(d1, ", ")
+		embeds[1].Description = strings.Join(d2, ", ")
+		embeds[2].Description = strings.Join(d3, ", ")
 
 		s.ChannelMessageEditComplex(&discordgo.MessageEdit{
 			Embeds:  embeds,

@@ -18,7 +18,7 @@ import (
 
 type KungdotaRepository interface {
 	GetByNames(ctx context.Context, ids []string) (kungdota.Players2, error)
-	GetByDiscordID(ctx context.Context, ids []string) ([]kungdota.Players2, error)
+	GetByDiscordIDs(ctx context.Context, ids []string) ([]string, error)
 	PostMatch(m kungdota.Match) error
 	GetAllPlayers() (kungdota.Players2, error)
 	SignUp(ctx context.Context, username string, i int) (map[string][]string, error)
@@ -98,17 +98,37 @@ func (rx kungdotaRepository) GetByNames(ctx context.Context, ids []string) (kung
 			}
 		}
 		rx.logger.Error("KungdotaRepository.GetByNames player not found")
-		return kungdota.Players2{}, errors.New("player not found")
+		return kungdota.Players2{}, fmt.Errorf("player not found with name %s", id)
 	found:
 	}
-
+	// return kungdota.Match{}, fmt.Errorf("player not found, %d with name %s", pOpen.AccountID, pOpen.Personaname)
 	return kungdota.Players2{
 		Players: pList,
 	}, nil
 }
 
-func (rx kungdotaRepository) GetByDiscordID(ctx context.Context, ids []string) ([]kungdota.Players2, error) {
-	return nil, nil
+func (rx kungdotaRepository) GetByDiscordIDs(ctx context.Context, ids []string) ([]string, error) {
+	players, err := rx.GetAllPlayers()
+	if err != nil {
+		rx.logger.Error("KungdotaRepository.GetByDiscordIDs failed")
+		return nil, err
+	}
+
+	pList := make([]string, 0)
+	for _, id := range ids {
+		for _, p := range players.Players {
+			if p.DiscordID == id {
+				pList = append(pList, p.Username)
+				goto found
+			}
+		}
+		rx.logger.Error("KungdotaRepository.GetByDiscordIDs player not found")
+
+		return nil, errors.New(fmt.Sprintf("player not found %s", id))
+	found:
+	}
+
+	return pList, nil
 }
 
 type signupURL struct {

@@ -21,6 +21,9 @@ type Application interface {
 	RunSignUp()
 }
 
+type Misc struct {
+	SuperDuperAdmin []string
+}
 type application struct {
 	Logger           *zap.Logger
 	DiscordService   *DiscordService
@@ -28,6 +31,7 @@ type application struct {
 	SteamdotaService *steamdotasvc.SteamdotaService
 	OpendotaService  *opendotasvc.OpendotaService
 	DynamodbService  *dynamodbsvc.DynamodbService
+	Misc             *Misc
 }
 
 func NewApplication(
@@ -37,6 +41,7 @@ func NewApplication(
 	steamdotaService *steamdotasvc.SteamdotaService,
 	opendotaService *opendotasvc.OpendotaService,
 	dynamodbService *dynamodbsvc.DynamodbService,
+	misc *Misc,
 ) Application {
 	return &application{
 		Logger:           logger,
@@ -45,6 +50,7 @@ func NewApplication(
 		SteamdotaService: steamdotaService,
 		OpendotaService:  opendotaService,
 		DynamodbService:  dynamodbService,
+		Misc:             misc,
 	}
 }
 

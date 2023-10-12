@@ -54,7 +54,7 @@ func init() {
 			opendotarepo.NewConfig(config.SteamKey)),
 	)
 
-	leagueBot = application.NewApplication(logger, &dsvc, &ksvc, &ssvc, &osvc, nil)
+	leagueBot = application.NewApplication(logger, &dsvc, &ksvc, &ssvc, &osvc, nil, nil)
 }
 
 func startLeagueBot(cmd *cobra.Command, _ []string) {

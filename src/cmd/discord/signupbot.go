@@ -75,7 +75,11 @@ func init() {
 			dynamodbrepo.NewConfig(awsConfig)),
 	)
 
-	signupBot = application.NewApplication(logger, &dsvc, &ksvc, &ssvc, &osvc, &dydbsvc)
+	misc := application.Misc{
+		SuperDuperAdmin: config.SuperDuperAdmin,
+	}
+
+	signupBot = application.NewApplication(logger, &dsvc, &ksvc, &ssvc, &osvc, &dydbsvc, &misc)
 }
 
 func startSignupBot(cmd *cobra.Command, _ []string) {

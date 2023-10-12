@@ -4,6 +4,7 @@ import (
 	"context"
 	"dota-discord-bot/src/internal/opendota"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -46,6 +47,10 @@ func (rx opendotaRepository) GetMatch(ctx context.Context, id string) (opendota.
 	if err != nil {
 		rx.logger.Error(err.Error())
 		return opendota.OpenDotaGameObject{}, err
+	}
+
+	if resp.StatusCode != 200 {
+		return opendota.OpenDotaGameObject{}, errors.New("error with reciving game")
 	}
 
 	body, err := io.ReadAll(resp.Body)

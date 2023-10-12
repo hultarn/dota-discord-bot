@@ -11,7 +11,7 @@ import (
 var (
 	ShuffleCmd = discordgo.ApplicationCommand{
 		Name:        "shuffle",
-		Description: "shuffle teams",
+		Description: "shuffle teams from KungDota names",
 		Options: []*discordgo.ApplicationCommandOption{
 			{
 				Type:        discordgo.ApplicationCommandOptionString,
@@ -81,6 +81,7 @@ var (
 
 		if err := (*app.KungdotaService).ShufflePlayers(context.Background(), getNames(i)); err != nil {
 			app.Logger.Error(fmt.Sprintf("ShuffleCommandHandler ShufflePlayers failed %s", err))
+			return
 		}
 
 		if err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
@@ -88,6 +89,7 @@ var (
 			Data: createResponseData((*app.KungdotaService).GetProperties()),
 		}); err != nil {
 			app.Logger.Error(fmt.Sprintf("ShuffleCommandHandler: InteractionRespond failed %s", err))
+			return
 		}
 	}
 )

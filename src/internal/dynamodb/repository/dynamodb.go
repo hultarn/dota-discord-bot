@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"slices"
 	"strconv"
 	"time"
 
@@ -13,10 +14,12 @@ import (
 )
 
 type DynamodbRepository interface {
+	GetCurrent(ctx context.Context) (Entry, error)
 	GetByCurrentWeekAndYear(ctx context.Context) (string, error)
 	InsertCurrentWeekAndYear(ctx context.Context, id string) error
-	// GetListCurrentWeekAndYear(ctx context.Context) (string, error)
-	// InsertListCurrentWeekAndYear(ctx context.Context, id string) error
+	GetCurrentPlayers(ctx context.Context) (string, error)
+	InsertPlayer(ctx context.Context, id string, i int) error
+	ClearPlayers(ctx context.Context) error
 }
 
 type dynamodbRepository struct {
@@ -30,17 +33,13 @@ type config struct {
 }
 
 type Entry struct {
-	Week         string `dynamodbav:"week"`
-	Year         string `dynamodbav:"year"`
-	MessageID    string `dynamodbav:"message_id"`
-	CreationDate string `dynamodbav:"creation_date"`
-}
-
-type EntrySignup struct {
-	Week         string `dynamodbav:"week"`
-	Year         string `dynamodbav:"year"`
-	DiscordID    string `dynamodbav:"message_id"`
-	CreationDate string `dynamodbav:"creation_date"`
+	Week         string   `dynamodbav:"week"`
+	Year         string   `dynamodbav:"year"`
+	MessageID    string   `dynamodbav:"message_id"`
+	CreationDate string   `dynamodbav:"creation_date"`
+	Game_1       []string `dynamodbav:"game_1"`
+	Game_2       []string `dynamodbav:"game_2"`
+	Game_3       []string `dynamodbav:"game_3"`
 }
 
 func NewConfig(c aws.Config) config {
@@ -57,7 +56,7 @@ func NewDynamodbRepository(logger *zap.Logger, config config) DynamodbRepository
 	}
 }
 
-func (rx dynamodbRepository) GetByCurrentWeekAndYear(ctx context.Context) (string, error) {
+func (rx dynamodbRepository) GetCurrent(ctx context.Context) (Entry, error) {
 	var entry Entry
 
 	year, week := time.Now().UTC().ISOWeek()
@@ -73,11 +72,21 @@ func (rx dynamodbRepository) GetByCurrentWeekAndYear(ctx context.Context) (strin
 		},
 	)
 	if err != nil {
-		rx.logger.Error("DynamodbRepository.GetByCurrentWeekAndYear failed")
-		return "", err
+		rx.logger.Error("DynamodbRepository.GetCurrent failed")
+		return Entry{}, err
 	}
 
 	err = attributevalue.UnmarshalMap(item.Item, &entry)
+	if err != nil {
+		rx.logger.Error("DynamodbRepository.GetCurrent failed")
+		return Entry{}, err
+	}
+
+	return entry, nil
+}
+
+func (rx dynamodbRepository) GetByCurrentWeekAndYear(ctx context.Context) (string, error) {
+	entry, err := rx.GetCurrent(ctx)
 	if err != nil {
 		rx.logger.Error("DynamodbRepository.GetByCurrentWeekAndYear failed")
 		return "", err
@@ -101,7 +110,72 @@ func (rx dynamodbRepository) InsertCurrentWeekAndYear(ctx context.Context, id st
 
 	marshaledObjectToInsert, err := attributevalue.MarshalMap(e)
 	if err != nil {
+		rx.logger.Error("DynamodbRepository.InsertCurrentWeekAndYear failed")
+		return err
+	}
+
+	_, err = rx.client.PutItem(
+		ctx,
+		&dynamodb.PutItemInput{
+			TableName: aws.String("discord"),
+			Item:      marshaledObjectToInsert,
+		},
+	)
+	if err != nil {
+		rx.logger.Error("DynamodbRepository.InsertCurrentWeekAndYear failed")
+		return err
+	}
+
+	return nil
+}
+
+func (rx dynamodbRepository) GetCurrentPlayers(ctx context.Context) (string, error) {
+	entry, err := rx.GetCurrent(ctx)
+	if err != nil {
 		rx.logger.Error("DynamodbRepository.GetByCurrentWeekAndYear failed")
+		return "", err
+	}
+
+	return entry.MessageID, nil
+}
+
+func (rx dynamodbRepository) InsertPlayer(ctx context.Context, id string, i int) error {
+	e, err := rx.GetCurrent(ctx)
+	if err != nil {
+		rx.logger.Error("DynamodbRepository.InsertPlayer failed")
+		return err
+	}
+
+	var tmp *[]string
+	switch i {
+	case 0:
+		tmp = &e.Game_1
+	case 1:
+		tmp = &e.Game_2
+	case 2:
+		tmp = &e.Game_3
+	default:
+		rx.logger.Error("DynamodbRepository.InsertPlayer failed")
+		return err
+	}
+
+	if slices.Contains(*tmp, id) {
+		rx.logger.Error("DynamodbRepository.InsertPlayer failed, player already signed up")
+		return nil
+	}
+
+	if len(*tmp) > 10 {
+		rx.logger.Error("DynamodbRepository.InsertPlayer failed, game is full")
+		return nil
+	}
+
+	*tmp = append(*tmp, id)
+
+	rx.logger.Info("DynamodbRepository.Insert")
+
+	marshaledObjectToInsert, err := attributevalue.MarshalMap(e)
+	if err != nil {
+		rx.logger.Error("DynamodbRepository.InsertPlayer failed")
 		return err
 	}
 
@@ -114,6 +188,40 @@ func (rx dynamodbRepository) InsertCurrentWeekAndYear(ctx context.Context, id st
 	)
 	if err != nil {
 		rx.logger.Error("DynamodbRepository.GetByCurrentWeekAndYear failed")
+		return err
+	}
+
+	return nil
+}
+
+func (rx dynamodbRepository) ClearPlayers(ctx context.Context) error {
+	e, err := rx.GetCurrent(ctx)
+	if err != nil {
+		rx.logger.Error("DynamodbRepository.ClearPlayers failed")
+		return err
+	}
+
+	rx.logger.Info("DynamodbRepository.ClearPlayers")
+
+	e.Game_1 = []string{}
+	e.Game_2 = []string{}
+	e.Game_3 = []string{}
+
+	marshaledObjectToInsert, err := attributevalue.MarshalMap(e)
+	if err != nil {
+		rx.logger.Error("DynamodbRepository.InsertPlayer failed")
+		return err
+	}
+
+	_, err = rx.client.PutItem(
+		ctx,
+		&dynamodb.PutItemInput{
+			TableName: aws.String("discord"),
+			Item:      marshaledObjectToInsert,
+		},
+	)
+	if err != nil {
+		rx.logger.Error("DynamodbRepository.ClearPlayers failed")
 		return err
 	}
 

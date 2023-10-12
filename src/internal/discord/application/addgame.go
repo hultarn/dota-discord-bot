@@ -32,10 +32,12 @@ var (
 		g, err := (*app.OpendotaService).GetMatch(id)
 		if err != nil {
 			app.Logger.Error(fmt.Sprintf("AddGameCommandHandler GetGame failed %s", err))
+			return
 		}
 
 		if err := (*app.KungdotaService).PostMatch(g); err != nil {
 			app.Logger.Error(fmt.Sprintf("AddGameCommandHandler PostMatch failed %s", err))
+			return
 		}
 
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{})

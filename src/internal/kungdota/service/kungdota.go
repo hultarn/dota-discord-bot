@@ -18,7 +18,7 @@ import (
 
 type KungdotaService interface {
 	GetPlayersByNames(ctx context.Context, ids []string) (kungdota.Players2, error)
-	GetPlayers(ctx context.Context, ids []string) ([]kungdota.Players2, error)
+	GetPlayers(ctx context.Context, ids []string) ([]string, error)
 	ShufflePlayers(ctx context.Context, ids []string) error
 	GetProperties() Properties
 	PostMatch(m opendota.OpenDotaGameObject) error
@@ -97,7 +97,7 @@ func (rx kungdotaService) convert(m opendota.OpenDotaGameObject) (kungdota.Match
 			}
 		}
 		//TODO:
-		return kungdota.Match{}, fmt.Errorf("player not found ,%s", tmpID)
+		return kungdota.Match{}, fmt.Errorf("player not found, %d with name %s", pOpen.AccountID, pOpen.Personaname)
 	found:
 	}
 
@@ -128,8 +128,8 @@ func (rx kungdotaService) GetPlayersByNames(ctx context.Context, ids []string) (
 	return rx.kungdotaRepository.GetByNames(ctx, ids)
 }
 
-func (rx kungdotaService) GetPlayers(ctx context.Context, ids []string) ([]kungdota.Players2, error) {
-	return rx.kungdotaRepository.GetByDiscordID(ctx, ids)
+func (rx kungdotaService) GetPlayers(ctx context.Context, ids []string) ([]string, error) {
+	return rx.kungdotaRepository.GetByDiscordIDs(ctx, ids)
 }
 
 func (rx *kungdotaService) GetProperties() Properties {

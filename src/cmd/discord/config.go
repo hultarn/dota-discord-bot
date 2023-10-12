@@ -4,17 +4,20 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/joho/godotenv"
 )
 
 type Config struct {
-	Token      string
-	TeamOne    string
-	TeamTwo    string
-	SteamKey   string
-	DotaID     string
-	KungDotaID string
+	Token           string
+	SignUp          string
+	TeamOne         string
+	TeamTwo         string
+	SteamKey        string
+	DotaID          string
+	KungDotaID      string
+	SuperDuperAdmin []string
 }
 
 func NewConfig() (Config, error) {
@@ -28,6 +31,11 @@ func NewConfig() (Config, error) {
 	}
 
 	discordToken, ok := os.LookupEnv("DISCORD_TOKEN")
+	if !ok {
+		return Config{}, fmt.Errorf("err loading .env")
+	}
+
+	signUp, ok := os.LookupEnv("DISCORD_SIGNUP_ID")
 	if !ok {
 		return Config{}, fmt.Errorf("err loading .env")
 	}
@@ -57,12 +65,19 @@ func NewConfig() (Config, error) {
 		return Config{}, fmt.Errorf("err loading .env")
 	}
 
+	superDuperAdmin, ok := os.LookupEnv("SUPER_DUPER_ADMIN")
+	if !ok {
+		return Config{}, fmt.Errorf("err loading .env")
+	}
+
 	return Config{
-		Token:      discordToken,
-		TeamOne:    teamOne,
-		TeamTwo:    teamTwo,
-		SteamKey:   steamKey,
-		DotaID:     dotaID,
-		KungDotaID: kungDotaID,
+		Token:           discordToken,
+		SignUp:          signUp,
+		TeamOne:         teamOne,
+		TeamTwo:         teamTwo,
+		SteamKey:        steamKey,
+		DotaID:          dotaID,
+		KungDotaID:      kungDotaID,
+		SuperDuperAdmin: strings.Split(superDuperAdmin, ","),
 	}, nil
 }
