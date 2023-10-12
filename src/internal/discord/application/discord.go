@@ -30,6 +30,7 @@ type DiscordService interface {
 	GetProperties() properties
 
 	SignUpStart(app *application) error
+	PostNewSignUpMessage(app *application) error
 }
 
 type discordService struct {
@@ -76,6 +77,19 @@ func NewDiscordService(logger *zap.Logger, config config) DiscordService {
 	return r
 }
 
+func (rx *discordService) PostNewSignUpMessage(app *application) error {
+	m, err := rx.props.S.ChannelMessageSendComplex((*app.DiscordService).GetProperties().SignUp, createResponseDataSignup())
+	if err != nil {
+		return nil
+	}
+
+	if err := (*app.DynamodbService).InsertCurrentWeekAndYear(context.Background(), m.ID); err != nil {
+		return nil
+	}
+
+	return nil
+}
+
 func (rx *discordService) SignUpStart(app *application) error {
 	s, err := discordgo.New(fmt.Sprintf("%s %s", rx.config.tokenType, rx.config.token))
 	if err != nil {
@@ -84,22 +98,6 @@ func (rx *discordService) SignUpStart(app *application) error {
 
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		rx.logger.Info(fmt.Sprintf("logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator))
-
-		id, err := (*app.DynamodbService).GetByCurrentWeekAndYear(context.Background())
-		if err != nil {
-			return
-		}
-
-		if id == "" {
-			m, err := s.ChannelMessageSendComplex((*app.DiscordService).GetProperties().SignUp, createResponseDataSignup())
-			if err != nil {
-				return
-			}
-
-			if err := (*app.DynamodbService).InsertCurrentWeekAndYear(context.Background(), m.ID); err != nil {
-				return
-			}
-		}
 	})
 
 	s.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {

@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/robfig/cron"
 	"go.uber.org/zap"
 )
 
@@ -58,6 +59,15 @@ func (rx *application) RunSignUp() {
 	(*rx.DiscordService).SignUpStart(rx)
 
 	defer (*rx.DiscordService).GetProperties().S.Close()
+
+	c := cron.New()
+	c.AddFunc("0 5 * * 3", func() {
+		(*rx.DiscordService).PostNewSignUpMessage(rx)
+
+		rx.Logger.Info("Cron PostNewSignUpMessage")
+	})
+
+	c.Start()
 
 	// TODO: Better way?
 	stop := make(chan os.Signal, 1)
