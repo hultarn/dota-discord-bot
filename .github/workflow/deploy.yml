@@ -18,3 +18,13 @@ jobs:
         uses: golangci/golangci-lint-action@v3
       - name: Build binary
         run: go build -o dbot main.go
+
+      # TODO: Continue updating the binary on EC2
+      # - name: Upload to EC2
+      #   env:
+      #     AWS_KEY: ${{ secrets.aws_key }}
+      #     EC2_IP: ${{ secrets.ec2_ip }}
+      #   run: |
+      #     echo "$AWS_KEY" > .ssh/aws_key;
+      #     scp 
+      #     ssh -i .ssh/aws_key "$EC2_IP"
