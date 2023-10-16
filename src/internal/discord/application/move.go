@@ -24,16 +24,18 @@ var (
 		tOne := (*app.DiscordService).GetProperties().TeamOne
 		tTwo := (*app.DiscordService).GetProperties().TeamTwo
 		for _, u := range props.TeamOne.Players {
-			s.GuildMemberMove(i.GuildID, u.DiscordID, &tOne)
+			if err := s.GuildMemberMove(i.GuildID, u.DiscordID, &tOne); err != nil {
+				return
+			}
 		}
 		for _, u := range props.TeamTwo.Players {
-			s.GuildMemberMove(i.GuildID, u.DiscordID, &tTwo)
+			if err := s.GuildMemberMove(i.GuildID, u.DiscordID, &tTwo); err != nil {
+				return
+			}
 		}
 
-		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{})
+		if err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{}); err != nil {
+			return
+		}
 	}
 )
-
-func move() {
-	fmt.Println()
-}

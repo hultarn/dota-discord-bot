@@ -30,6 +30,10 @@ var (
 
 		//TODO: This is pretty dumb...
 		p, err := (*app.DynamodbService).GetCurrentPlayers(context.Background(), idx)
+		if err != nil {
+			app.Logger.Error(fmt.Sprintf("ShuffleSmartCommandHandler ShufflePlayers failed %v", err))
+			return
+		}
 
 		p2, err := (*app.KungdotaService).GetPlayersByDiscordIDs(context.Background(), p)
 		if err != nil {

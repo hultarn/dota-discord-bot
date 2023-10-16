@@ -187,7 +187,7 @@ func (rx *kungdotaService) ShufflePlayers(ctx context.Context, p kungdota.Player
 	var a kungdota.Players2
 	var b kungdota.Players2
 
-	if rand.Intn(1) == 1 {
+	if rand.Intn(2) == 1 {
 		a.Players = t1
 		b.Players = t2
 	} else {

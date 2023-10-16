@@ -52,6 +52,9 @@ var (
 			return
 		}
 
-		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{})
+		if err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{}); err != nil {
+			app.Logger.Error(fmt.Sprintf("UpdateCommandHandler PostMatch failed %s", err))
+			return
+		}
 	}
 )

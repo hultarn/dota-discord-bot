@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
@@ -124,7 +123,7 @@ func (rx kungdotaRepository) GetByDiscordIDs(ctx context.Context, ids []string) 
 		}
 		rx.logger.Error("KungdotaRepository.GetByDiscordIDs player not found")
 
-		return nil, errors.New(fmt.Sprintf("player not found %s", id))
+		return nil, fmt.Errorf("player not found %s", id)
 	found:
 	}
 
@@ -231,7 +230,7 @@ func (rx kungdotaRepository) getGameIDs(CSRFToken string, url string) (Poll, err
 	}
 	defer res.Body.Close()
 
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		rx.logger.Error("KungdotaRepository.SignUp failed")
 		return Poll{}, err
@@ -263,7 +262,10 @@ func (rx kungdotaRepository) checkUsername(token string, username string, csrf s
 	}
 
 	payloadBuf := new(bytes.Buffer)
-	json.NewEncoder(payloadBuf).Encode(payload)
+	if err := json.NewEncoder(payloadBuf).Encode(payload); err != nil {
+		rx.logger.Error("KungdotaRepository.SignUp failed")
+		return Res{}, err
+	}
 
 	req, err := http.NewRequest("POST", "https://nextcloud.jacobadlers.com/index.php/apps/polls/check/username", payloadBuf)
 	if err != nil {
@@ -327,7 +329,10 @@ func (rx kungdotaRepository) registerUsername(token string, username string, url
 	}
 
 	payloadBuf := new(bytes.Buffer)
-	json.NewEncoder(payloadBuf).Encode(payload)
+	if err := json.NewEncoder(payloadBuf).Encode(payload); err != nil {
+		rx.logger.Error("KungdotaRepository.SignUp failed")
+		return RegisterUsernameResponse{}, err
+	}
 
 	req, err := http.NewRequest("POST", url+"/register", payloadBuf)
 	if err != nil {
@@ -384,7 +389,10 @@ func (rx kungdotaRepository) Sign(ID int, token string, csrf string) (SignRespon
 	}
 
 	payloadBuf := new(bytes.Buffer)
-	json.NewEncoder(payloadBuf).Encode(payload)
+	if err := json.NewEncoder(payloadBuf).Encode(payload); err != nil {
+		rx.logger.Error("KungdotaRepository.SignUp failed")
+		return SignResponse{}, err
+	}
 
 	req, err := http.NewRequest("PUT", "https://nextcloud.jacobadlers.com/index.php/apps/polls/s/"+token+"/vote", payloadBuf)
 	if err != nil {

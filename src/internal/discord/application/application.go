@@ -56,16 +56,25 @@ func NewApplication(
 }
 
 func (rx *application) RunSignUp() {
-	(*rx.DiscordService).SignUpStart(rx)
+	if err := (*rx.DiscordService).SignUpStart(rx); err != nil {
+		rx.Logger.Error("RunSignUp failed")
+		panic("")
+	}
 
 	defer (*rx.DiscordService).GetProperties().S.Close()
 
 	c := cron.New()
-	c.AddFunc("0 5 * * 3", func() {
-		(*rx.DiscordService).PostNewSignUpMessage(rx)
+	if err := c.AddFunc("0 5 * * 3", func() {
+		if err := (*rx.DiscordService).PostNewSignUpMessage(rx); err != nil {
+			rx.Logger.Error("RunSignUp failed")
+			panic("")
+		}
 
 		rx.Logger.Info("Cron PostNewSignUpMessage")
-	})
+	}); err != nil {
+		rx.Logger.Error("RunSignUp failed")
+		panic("")
+	}
 
 	c.Start()
 
@@ -76,9 +85,18 @@ func (rx *application) RunSignUp() {
 }
 
 func (rx *application) Run() {
-	(*rx.DiscordService).Start(rx)
-	(*rx.DiscordService).AddHandlers(rx)
-	(*rx.DiscordService).AddCommands(rx)
+	if err := (*rx.DiscordService).Start(rx); err != nil {
+		rx.Logger.Error("Run failed")
+		panic("")
+	}
+	if err := (*rx.DiscordService).AddHandlers(rx); err != nil {
+		rx.Logger.Error("Run failed")
+		panic("")
+	}
+	if err := (*rx.DiscordService).AddCommands(rx); err != nil {
+		rx.Logger.Error("Run failed")
+		panic("")
+	}
 	// (*rx.DiscordService).RemoveCommands(rx)
 	defer (*rx.DiscordService).GetProperties().S.Close()
 
@@ -87,5 +105,8 @@ func (rx *application) Run() {
 	signal.Notify(stop, os.Interrupt)
 	<-stop
 
-	(*rx.DiscordService).RemoveCommands(rx)
+	if err := (*rx.DiscordService).RemoveCommands(rx); err != nil {
+		rx.Logger.Error("Run failed")
+		panic("")
+	}
 }

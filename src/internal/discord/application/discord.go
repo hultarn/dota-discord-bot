@@ -15,11 +15,10 @@ const (
 	updateBtn = "update_btn"
 	cancelBtn = "cancel_btn"
 
-	gameOneBtn    = "game_1_btn"
-	gameTwoBtn    = "game_2_btn"
-	gameThreeBtn  = "game_3_btn"
-	gameClearBtn  = "game_clear_btn"
-	gameUpdateBtn = "game_update_btn"
+	gameOneBtn   = "game_1_btn"
+	gameTwoBtn   = "game_2_btn"
+	gameThreeBtn = "game_3_btn"
+	gameClearBtn = "game_clear_btn"
 )
 
 type DiscordService interface {
@@ -80,11 +79,11 @@ func NewDiscordService(logger *zap.Logger, config config) DiscordService {
 func (rx *discordService) PostNewSignUpMessage(app *application) error {
 	m, err := rx.props.S.ChannelMessageSendComplex((*app.DiscordService).GetProperties().SignUp, createResponseDataSignup())
 	if err != nil {
-		return nil
+		return err
 	}
 
 	if err := (*app.DynamodbService).InsertCurrentWeekAndYear(context.Background(), m.ID); err != nil {
-		return nil
+		return err
 	}
 
 	return nil
@@ -151,16 +150,24 @@ func (rx *discordService) SignUpStart(app *application) error {
 		switch v := i.MessageComponentData().CustomID; v {
 		case gameOneBtn:
 			//newList, err = (*app.KungdotaService).SignUp(context.Background(), i.Interaction.Member.User.Username, 0)
-			(*app.DynamodbService).InsertPlayer(context.Background(), i.Interaction.Member.User.ID, 0)
+			if err := (*app.DynamodbService).InsertPlayer(context.Background(), i.Interaction.Member.User.ID, 0); err != nil {
+				rx.logger.Error("failed InsertPlayer")
+			}
 		case gameTwoBtn:
 			// newList, err = (*app.KungdotaService).SignUp(context.Background(), i.Interaction.Member.User.Username, 1)
-			(*app.DynamodbService).InsertPlayer(context.Background(), i.Interaction.Member.User.ID, 1)
+			if err := (*app.DynamodbService).InsertPlayer(context.Background(), i.Interaction.Member.User.ID, 1); err != nil {
+				rx.logger.Error("failed InsertPlayer")
+			}
 		case gameThreeBtn:
 			// newList, err = (*app.KungdotaService).SignUp(context.Background(), i.Interaction.Member.User.Username, 2)
-			(*app.DynamodbService).InsertPlayer(context.Background(), i.Interaction.Member.User.ID, 2)
+			if err := (*app.DynamodbService).InsertPlayer(context.Background(), i.Interaction.Member.User.ID, 2); err != nil {
+				rx.logger.Error("failed InsertPlayer")
+			}
 		case gameClearBtn:
 			if slices.Contains(app.Misc.SuperDuperAdmin, i.Interaction.Member.User.ID) {
-				(*app.DynamodbService).ClearPlayers(context.Background())
+				if err := (*app.DynamodbService).ClearPlayers(context.Background()); err != nil {
+					rx.logger.Error("failed InsertPlayer")
+				}
 			} else {
 				ch, err := s.UserChannelCreate(i.Interaction.Member.User.ID)
 				if err != nil {
@@ -200,16 +207,17 @@ func (rx *discordService) SignUpStart(app *application) error {
 		}
 
 		embeds := getEmbeds()
-		embeds[0].Description = strings.Join(d1, ", ")
-		embeds[1].Description = strings.Join(d2, ", ")
-		embeds[2].Description = strings.Join(d3, ", ")
+		embeds[0].Description = strings.Join(d1, ", ") + " Tot:" + fmt.Sprint(len(d1))
+		embeds[1].Description = strings.Join(d2, ", ") + " Tot:" + fmt.Sprint(len(d2))
+		embeds[2].Description = strings.Join(d3, ", ") + " Tot:" + fmt.Sprint(len(d3))
 
-		s.ChannelMessageEditComplex(&discordgo.MessageEdit{
+		if _, err := s.ChannelMessageEditComplex(&discordgo.MessageEdit{
 			Embeds:  embeds,
 			ID:      id,
 			Channel: (*app.DiscordService).GetProperties().SignUp,
-		})
-
+		}); err != nil {
+			rx.logger.Error(fmt.Sprintln(err))
+		}
 	})
 
 	if err := s.Open(); err != nil {
@@ -227,31 +235,25 @@ func createResponseDataSignup() *discordgo.MessageSend {
 			Label:    "Game_1",
 			Style:    1,
 			Disabled: false,
-			CustomID: `game_1_btn`,
+			CustomID: gameOneBtn,
 		},
 		discordgo.Button{
 			Label:    "Game_2",
 			Style:    1,
 			Disabled: false,
-			CustomID: `game_2_btn`,
+			CustomID: gameTwoBtn,
 		},
 		discordgo.Button{
 			Label:    "Game_3",
 			Style:    1,
 			Disabled: false,
-			CustomID: `game_3_btn`,
+			CustomID: gameThreeBtn,
 		},
 		discordgo.Button{
 			Label:    "Clear",
 			Style:    4,
 			Disabled: false,
-			CustomID: `game_clear_btn`,
-		},
-		discordgo.Button{
-			Label:    "Update",
-			Style:    4,
-			Disabled: false,
-			CustomID: `game_update_btn`,
+			CustomID: gameClearBtn,
 		},
 	}
 
@@ -323,9 +325,13 @@ func (rx *discordService) AddHandlers(app *application) error {
 			case updateBtn:
 				UpdateCommandHandler(s, i, *app)
 			case cancelBtn:
-				s.ChannelMessageDelete(i.ChannelID, i.Message.ID)
+				if err := s.ChannelMessageDelete(i.ChannelID, i.Message.ID); err != nil {
+					return
+				}
 			}
-			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{})
+			if err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{}); err != nil {
+				return
+			}
 		}
 	})
 
