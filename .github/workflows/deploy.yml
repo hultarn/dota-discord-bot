@@ -7,11 +7,11 @@ jobs:
     name: Build binary
     runs-on: ubuntu-latest
     steps:
-      - name: Check known hosts
-        run: |
-          ls "$HOME/.ssh"
-          echo "$HOME/.ssh/known_hosts"
-          exit 1
+      # - name: Check known hosts
+      #   run: |
+      #     ls "$HOME/.ssh"
+      #     echo "$HOME/.ssh/known_hosts"
+      #     exit 1
       - name: Check out files from GitHub
         uses: actions/checkout@v4.1.0
       # https://github.com/actions/setup-go
