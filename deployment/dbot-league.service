@@ -1,0 +1,13 @@
+[Unit]
+Description=Discord bot for league
+ConditionPathExists=/home/ubuntu/dbot
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/home/ubuntu/dbot discord start-league-bot
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
