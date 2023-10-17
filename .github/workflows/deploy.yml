@@ -26,9 +26,9 @@ jobs:
           ENV: ${{ secrets.ENV }}
           EC2_INSTANCE: ${{ secrets.EC2_INSTANCE }}
         run: |
-          echo "$AWS_KEY" > .ssh/aws_key;
+          echo "$AWS_KEY" > aws_key;
           echo "$ENV" > .env
-          scp -i .ssh/aws_key .env "$EC2_INSTANCE"
-          scp -i .ssh/aws_key dbot "$EC2_INSTANCE"
-          ssh -i .ssh/aws_key "$EC2_INSTANCE" sudo systemctl restart dbot-signup
-          ssh -i .ssh/aws_key "$EC2_INSTANCE" sudo systemctl restart dbot-league
+          scp -i aws_key .env "$EC2_INSTANCE"
+          scp -i aws_key dbot "$EC2_INSTANCE"
+          ssh -i aws_key "$EC2_INSTANCE" sudo systemctl restart dbot-signup
+          ssh -i aws_key "$EC2_INSTANCE" sudo systemctl restart dbot-league
