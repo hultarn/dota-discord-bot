@@ -72,7 +72,7 @@ func (rx dynamodbRepository) GetCurrent(ctx context.Context) (Entry, error) {
 		},
 	)
 	if err != nil {
-		rx.logger.Error("DynamodbRepository.GetCurrent.GetItem failed")
+		rx.logger.Error("DynamodbRepository.GetCurrent.GetItem failed", zap.Error(err))
 		return Entry{}, err
 	}
 
