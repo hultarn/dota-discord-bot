@@ -72,13 +72,13 @@ func (rx dynamodbRepository) GetCurrent(ctx context.Context) (Entry, error) {
 		},
 	)
 	if err != nil {
-		rx.logger.Error("DynamodbRepository.GetCurrent failed")
+		rx.logger.Error("DynamodbRepository.GetCurrent.GetItem failed")
 		return Entry{}, err
 	}
 
 	err = attributevalue.UnmarshalMap(item.Item, &entry)
 	if err != nil {
-		rx.logger.Error("DynamodbRepository.GetCurrent failed")
+		rx.logger.Error("DynamodbRepository.GetCurrent.UnmarshalMap failed")
 		return Entry{}, err
 	}
 
@@ -132,7 +132,7 @@ func (rx dynamodbRepository) InsertCurrentWeekAndYear(ctx context.Context, id st
 func (rx dynamodbRepository) GetCurrentPlayers(ctx context.Context, idx int) ([]string, error) {
 	entry, err := rx.GetCurrent(ctx)
 	if err != nil {
-		rx.logger.Error("DynamodbRepository.GetByCurrentWeekAndYear failed")
+		rx.logger.Error("DynamodbRepository.GetCurrentPlayers failed")
 		return nil, err
 	}
 
@@ -198,7 +198,7 @@ func (rx dynamodbRepository) InsertPlayer(ctx context.Context, id string, i int)
 		},
 	)
 	if err != nil {
-		rx.logger.Error("DynamodbRepository.GetByCurrentWeekAndYear failed")
+		rx.logger.Error("DynamodbRepository.InsertPlayer failed")
 		return err
 	}
 
