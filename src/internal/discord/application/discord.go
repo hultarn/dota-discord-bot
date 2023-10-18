@@ -115,6 +115,7 @@ func (rx *discordService) SignUpStart(app *application) error {
 
 		id, err = (*app.DynamodbService).GetByCurrentWeekAndYear(context.Background())
 		if err != nil {
+
 			return
 		}
 

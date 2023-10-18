@@ -167,20 +167,15 @@ func (rx dynamodbRepository) InsertPlayer(ctx context.Context, id string, i int)
 		tmp = &e.Game_3
 	default:
 		rx.logger.Error("DynamodbRepository.InsertPlayer failed")
+
 		return err
 	}
 
 	if slices.Contains(*tmp, id) {
-		rx.logger.Error("DynamodbRepository.InsertPlayer failed, player already signed up")
-		return nil
+		*tmp = remove(*tmp, id)
+	} else if len(*tmp) < 10 {
+		*tmp = append(*tmp, id)
 	}
-
-	if len(*tmp) >= 10 {
-		rx.logger.Error("DynamodbRepository.InsertPlayer failed, game is full")
-		return nil
-	}
-
-	*tmp = append(*tmp, id)
 
 	rx.logger.Info("DynamodbRepository.Insert")
 
@@ -200,6 +195,17 @@ func (rx dynamodbRepository) InsertPlayer(ctx context.Context, id string, i int)
 	if err != nil {
 		rx.logger.Error("DynamodbRepository.InsertPlayer failed")
 		return err
+	}
+
+	return nil
+}
+
+// TODO: Add this in some misc function folder?
+func remove(l []string, item string) []string {
+	for i, other := range l {
+		if other == item {
+			return append(l[:i], l[i+1:]...)
+		}
 	}
 
 	return nil
