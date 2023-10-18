@@ -31,4 +31,4 @@ jobs:
           AWS_KEY: ${{ secrets.AWS_KEY }}
           ENV: ${{ secrets.ENV }}
           EC2_INSTANCE: ${{ secrets.EC2_INSTANCE }}
-        run: bash deployment/upload-and-restart.sh
+        run: deployment/upload-and-restart.sh

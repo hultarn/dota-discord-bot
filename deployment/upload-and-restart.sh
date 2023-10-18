@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Exit on any error
-set -e
+set -ex
 
 mkdir "$HOME/.ssh"
 echo "$AWS_KEY" > "$HOME/.ssh/aws_key"
