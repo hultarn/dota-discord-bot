@@ -26,6 +26,9 @@ jobs:
         continue-on-error: true
       - name: Build binary
         run: go build -o dbot main.go
+        env:
+          GOOS: linux
+          GOARCH: arm
       - name: Upload to EC2
         env:
           AWS_KEY: ${{ secrets.AWS_KEY }}
