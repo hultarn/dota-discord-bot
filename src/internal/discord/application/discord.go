@@ -100,6 +100,10 @@ func (rx *discordService) SignUpStart(app *application) error {
 	})
 
 	s.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		if err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{}); err != nil {
+			return
+		}
+
 		id, err := (*app.DynamodbService).GetByCurrentWeekAndYear(context.Background())
 		if err != nil {
 			return
