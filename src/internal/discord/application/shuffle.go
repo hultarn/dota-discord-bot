@@ -111,26 +111,32 @@ func getNames(i *discordgo.InteractionCreate) []string {
 }
 
 func createResponseData(p service.Properties) *discordgo.InteractionResponseData {
-	btns := []discordgo.MessageComponent{
-		discordgo.Button{
-			Label:    "Move",
-			Style:    1,
-			Disabled: false,
-			CustomID: `move_btn`,
-		},
-		discordgo.Button{
-			Label:    "Update",
-			Style:    1,
-			Disabled: false,
-			CustomID: `update_btn`,
-		},
-		discordgo.Button{
-			Label:    "Cancel",
-			Style:    4,
-			Disabled: false,
-			CustomID: `cancel_btn`,
-		},
-	}
+	// btns := []discordgo.MessageComponent{
+	// 	discordgo.Button{
+	// 		Label:    "Move",
+	// 		Style:    1,
+	// 		Disabled: false,
+	// 		Emoji:    discordgo.ComponentEmoji{},
+	// 		URL:      "",
+	// 		CustomID: `move_btn`,
+	// 	},
+	// 	discordgo.Button{
+	// 		Label:    "Update",
+	// 		Style:    1,
+	// 		Disabled: false,
+	// 		Emoji:    discordgo.ComponentEmoji{},
+	// 		URL:      "",
+	// 		CustomID: `update_btn`,
+	// 	},
+	// 	discordgo.Button{
+	// 		Label:    "Cancel",
+	// 		Style:    4,
+	// 		Disabled: false,
+	// 		Emoji:    discordgo.ComponentEmoji{},
+	// 		URL:      "",
+	// 		CustomID: `cancel_btn`,
+	// 	},
+	// }
 
 	embeds := []*discordgo.MessageEmbed{
 		{
@@ -149,11 +155,11 @@ func createResponseData(p service.Properties) *discordgo.InteractionResponseData
 	}
 
 	return &discordgo.InteractionResponseData{
-		Components: []discordgo.MessageComponent{
-			discordgo.ActionsRow{
-				Components: btns,
-			},
-		},
+		// Components: []discordgo.MessageComponent{
+		// 	discordgo.ActionsRow{
+		// 		Components: btns,
+		// 	},
+		// },
 		Embeds: embeds,
 	}
 }

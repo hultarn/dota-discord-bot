@@ -3,52 +3,52 @@ package opendota
 import "time"
 
 type OpenDotaGameObject struct {
-	MatchID               int            `json:"match_id"`
-	BarracksStatusDire    int            `json:"barracks_status_dire"`
-	BarracksStatusRadiant int            `json:"barracks_status_radiant"`
-	Chat                  []Chat         `json:"chat"`
-	Cluster               int            `json:"cluster"`
-	Cosmetics             Cosmetics      `json:"cosmetics"`
-	DireScore             int            `json:"dire_score"`
-	DraftTimings          []DraftTimings `json:"draft_timings"`
-	Duration              int            `json:"duration"`
-	Engine                int            `json:"engine"`
-	FirstBloodTime        int            `json:"first_blood_time"`
-	GameMode              int            `json:"game_mode"`
-	HumanPlayers          int            `json:"human_players"`
-	Leagueid              int            `json:"leagueid"`
-	LobbyType             int            `json:"lobby_type"`
-	MatchSeqNum           int            `json:"match_seq_num"`
-	NegativeVotes         int            `json:"negative_votes"`
-	Objectives            []Objectives   `json:"objectives"`
-	PicksBans             PicksBans      `json:"picks_bans"`
-	PositiveVotes         int            `json:"positive_votes"`
-	RadiantGoldAdv        RadiantGoldAdv `json:"radiant_gold_adv"`
-	RadiantScore          int            `json:"radiant_score"`
-	RadiantWin            bool           `json:"radiant_win"`
-	RadiantXpAdv          RadiantXpAdv   `json:"radiant_xp_adv"`
-	StartTime             int            `json:"start_time"`
-	Teamfights            Teamfights     `json:"teamfights"`
-	TowerStatusDire       int            `json:"tower_status_dire"`
-	TowerStatusRadiant    int            `json:"tower_status_radiant"`
-	Version               int            `json:"version"`
-	ReplaySalt            int            `json:"replay_salt"`
-	SeriesID              int            `json:"series_id"`
-	SeriesType            int            `json:"series_type"`
-	RadiantTeam           RadiantTeam    `json:"radiant_team"`
-	DireTeam              DireTeam       `json:"dire_team"`
-	League                League         `json:"league"`
-	Skill                 int            `json:"skill"`
-	Players               []Players      `json:"players"`
-	Patch                 int            `json:"patch"`
-	Region                int            `json:"region"`
-	AllWordCounts         AllWordCounts  `json:"all_word_counts"`
-	MyWordCounts          MyWordCounts   `json:"my_word_counts"`
-	Throw                 int            `json:"throw"`
-	Comeback              int            `json:"comeback"`
-	Loss                  int            `json:"loss"`
-	Win                   int            `json:"win"`
-	ReplayURL             string         `json:"replay_url"`
+	MatchID interface{} `json:"match_id"`
+	// BarracksStatusDire    int `json:"barracks_status_dire"`
+	// BarracksStatusRadiant int `json:"barracks_status_radiant"`
+	// // Chat                  []Chat         `json:"chat"`
+	// Cluster int `json:"cluster"`
+	// // Cosmetics             Cosmetics      `json:"cosmetics"`
+	DireScore int `json:"dire_score"`
+	// // DraftTimings          []DraftTimings `json:"draft_timings"`
+	// Duration       int          `json:"duration"`
+	// Engine         int          `json:"engine"`
+	// FirstBloodTime int          `json:"first_blood_time"`
+	// GameMode       int          `json:"game_mode"`
+	// HumanPlayers   int          `json:"human_players"`
+	// Leagueid       int          `json:"leagueid"`
+	// LobbyType      int          `json:"lobby_type"`
+	// MatchSeqNum    int          `json:"match_seq_num"`
+	// NegativeVotes  int          `json:"negative_votes"`
+	Objectives []Objectives `json:"objectives"`
+	// // PicksBans             PicksBans      `json:"picks_bans"`
+	// PositiveVotes int `json:"positive_votes"`
+	// // RadiantGoldAdv     RadiantGoldAdv `json:"radiant_gold_adv"`
+	RadiantScore int  `json:"radiant_score"`
+	RadiantWin   bool `json:"radiant_win"`
+	// // RadiantXpAdv       RadiantXpAdv   `json:"radiant_xp_adv"`
+	// StartTime int `json:"start_time"`
+	// // Teamfights         Teamfights     `json:"teamfights"`
+	// TowerStatusDire    int           `json:"tower_status_dire"`
+	// TowerStatusRadiant int           `json:"tower_status_radiant"`
+	// Version            int           `json:"version"`
+	// ReplaySalt         int           `json:"replay_salt"`
+	// SeriesID           int           `json:"series_id"`
+	// SeriesType         int           `json:"series_type"`
+	// RadiantTeam        RadiantTeam   `json:"radiant_team"`
+	// DireTeam           DireTeam      `json:"dire_team"`
+	// League             League        `json:"league"`
+	// Skill              int           `json:"skill"`
+	Players []Players `json:"players"`
+	// Patch              int           `json:"patch"`
+	// Region             int           `json:"region"`
+	// AllWordCounts      AllWordCounts `json:"all_word_counts"`
+	// MyWordCounts       MyWordCounts  `json:"my_word_counts"`
+	// Throw              int           `json:"throw"`
+	// Comeback           int           `json:"comeback"`
+	// Loss               int           `json:"loss"`
+	// Win                int           `json:"win"`
+	// ReplayURL          string        `json:"replay_url"`
 }
 type Chat struct {
 	Time       int    `json:"time"`
@@ -69,15 +69,15 @@ type DraftTimings struct {
 	TotalTimeTaken int  `json:"total_time_taken"`
 }
 type Objectives struct {
-	Time       int    `json:"time"`
-	Type       string `json:"type"`
-	Slot       int    `json:"slot,omitempty"`
-	Key        int    `json:"key,omitempty"`
-	PlayerSlot int    `json:"player_slot,omitempty"`
-	Unit       string `json:"unit,omitempty"`
-	Value      int    `json:"value,omitempty"`
-	Killer     int    `json:"killer,omitempty"`
-	Team       int    `json:"team,omitempty"`
+	Time       int         `json:"time"`
+	Type       string      `json:"type"`
+	Slot       int         `json:"slot,omitempty"`
+	Key        interface{} `json:"key,omitempty"`
+	PlayerSlot int         `json:"player_slot,omitempty"`
+	Unit       string      `json:"unit,omitempty"`
+	Value      int         `json:"value,omitempty"`
+	Killer     int         `json:"killer,omitempty"`
+	Team       int         `json:"team,omitempty"`
 }
 type PicksBans struct {
 }
@@ -258,7 +258,7 @@ type Players struct {
 	SenLeftLog              []SenLeftLog            `json:"sen_left_log"`
 	SenLog                  []SenLog                `json:"sen_log"`
 	SenPlaced               int                     `json:"sen_placed"`
-	Stuns                   int                     `json:"stuns"`
+	Stuns                   float64                 `json:"stuns"`
 	Times                   []int                   `json:"times"`
 	TowerDamage             int                     `json:"tower_damage"`
 	XpPerMin                int                     `json:"xp_per_min"`
@@ -280,8 +280,8 @@ type Players struct {
 	Lose                    int                     `json:"lose"`
 	TotalGold               int                     `json:"total_gold"`
 	TotalXp                 int                     `json:"total_xp"`
-	KillsPerMin             int                     `json:"kills_per_min"`
-	Kda                     int                     `json:"kda"`
+	KillsPerMin             float64                 `json:"kills_per_min"`
+	Kda                     float64                 `json:"kda"`
 	Abandons                int                     `json:"abandons"`
 	NeutralKills            int                     `json:"neutral_kills"`
 	TowerKills              int                     `json:"tower_kills"`
@@ -296,7 +296,7 @@ type Players struct {
 	BuybackCount            int                     `json:"buyback_count"`
 	ObserverUses            int                     `json:"observer_uses"`
 	SentryUses              int                     `json:"sentry_uses"`
-	LaneEfficiency          int                     `json:"lane_efficiency"`
+	LaneEfficiency          float64                 `json:"lane_efficiency"`
 	LaneEfficiencyPct       int                     `json:"lane_efficiency_pct"`
 	Lane                    int                     `json:"lane"`
 	LaneRole                int                     `json:"lane_role"`
@@ -305,12 +305,12 @@ type Players struct {
 	FirstPurchaseTime       FirstPurchaseTime       `json:"first_purchase_time"`
 	ItemWin                 ItemWin                 `json:"item_win"`
 	ItemUsage               ItemUsage               `json:"item_usage"`
-	PurchaseTpscroll        PurchaseTpscroll        `json:"purchase_tpscroll"`
+	PurchaseTpscroll        float64                 `json:"purchase_tpscroll"`
 	ActionsPerMin           int                     `json:"actions_per_min"`
 	LifeStateDead           int                     `json:"life_state_dead"`
 	RankTier                int                     `json:"rank_tier"`
-	Cosmetics               []int                   `json:"cosmetics"`
-	Benchmarks              Benchmarks              `json:"benchmarks"`
+	// Cosmetics               []int                   `json:"cosmetics"`
+	Benchmarks Benchmarks `json:"benchmarks"`
 }
 type AllWordCounts struct {
 }

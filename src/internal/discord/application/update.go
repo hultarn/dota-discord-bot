@@ -44,6 +44,8 @@ var (
 					app.Logger.Error(fmt.Sprintf("UpdateCommandHandler PostMatch failed %s", err))
 					return
 				}
+
+				return
 			}()
 		}
 

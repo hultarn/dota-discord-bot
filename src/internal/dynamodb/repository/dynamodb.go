@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"slices"
 	"strconv"
 	"time"
@@ -177,7 +178,7 @@ func (rx dynamodbRepository) InsertPlayer(ctx context.Context, id string, i int)
 		*tmp = append(*tmp, id)
 	}
 
-	rx.logger.Info("DynamodbRepository.Insert")
+	rx.logger.Info(fmt.Sprintf("DynamodbRepository.Insert, %s", id))
 
 	marshaledObjectToInsert, err := attributevalue.MarshalMap(e)
 	if err != nil {

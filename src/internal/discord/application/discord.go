@@ -100,7 +100,11 @@ func (rx *discordService) SignUpStart(app *application) error {
 	})
 
 	s.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-		if err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{}); err != nil {
+		if err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: 6,
+			Data: &discordgo.InteractionResponseData{},
+		}); err != nil {
+			rx.logger.Info(fmt.Sprintf("InteractionRespond %v", err))
 			return
 		}
 
@@ -240,24 +244,37 @@ func createResponseDataSignup() *discordgo.MessageSend {
 			Label:    "Game_1",
 			Style:    1,
 			Disabled: false,
+			Emoji: discordgo.ComponentEmoji{
+				Name: "🔧",
+			},
+			URL:      "",
 			CustomID: gameOneBtn,
 		},
 		discordgo.Button{
 			Label:    "Game_2",
 			Style:    1,
 			Disabled: false,
+			Emoji: discordgo.ComponentEmoji{
+				Name: "🔧",
+			},
 			CustomID: gameTwoBtn,
 		},
 		discordgo.Button{
 			Label:    "Game_3",
 			Style:    1,
 			Disabled: false,
+			Emoji: discordgo.ComponentEmoji{
+				Name: "🔧",
+			},
 			CustomID: gameThreeBtn,
 		},
 		discordgo.Button{
 			Label:    "Clear",
 			Style:    4,
 			Disabled: false,
+			Emoji: discordgo.ComponentEmoji{
+				Name: "🔧",
+			},
 			CustomID: gameClearBtn,
 		},
 	}

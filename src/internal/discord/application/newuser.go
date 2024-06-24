@@ -15,7 +15,7 @@ var (
 	NewUserCommandHandler = func(s *discordgo.Session, i *discordgo.InteractionCreate, app application) {
 		app.Logger.Info(fmt.Sprintf("NewUserCommandHandler: new_user started by user: %s#%s", i.Member.User.Username, i.Member.User.Discriminator))
 
-		//if todo add not already user check
+		// TODO: Add not already user check.
 
 		props := (*app.KungdotaService).GetProperties().ShuffledTeams
 

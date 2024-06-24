@@ -57,9 +57,13 @@ var (
 			return
 		}
 
+		teams := (*app.KungdotaService).GetProperties()
+		fmt.Println(teams)
+		data := createResponseData(teams)
+
 		if err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: createResponseData((*app.KungdotaService).GetProperties()),
+			Data: data,
 		}); err != nil {
 			app.Logger.Error(fmt.Sprintf("ShuffleSmartCommandHandler: InteractionRespond failed %s", err))
 			return

@@ -64,7 +64,7 @@ func (rx *application) RunSignUp() {
 	defer (*rx.DiscordService).GetProperties().S.Close()
 
 	c := cron.New()
-	if err := c.AddFunc("0 5 * * 3", func() {
+	if err := c.AddFunc("0 0 5 * * 3", func() {
 		if err := (*rx.DiscordService).PostNewSignUpMessage(rx); err != nil {
 			rx.Logger.Error("RunSignUp failed")
 			panic("")

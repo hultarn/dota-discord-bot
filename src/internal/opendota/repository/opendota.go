@@ -60,6 +60,7 @@ func (rx opendotaRepository) GetMatch(ctx context.Context, id string) (opendota.
 	}
 
 	var r = &opendota.OpenDotaGameObject{}
+	// fmt.Print(string(body[:]))
 	if err = json.Unmarshal(body, &r); err != nil {
 		rx.logger.Error(err.Error())
 		return opendota.OpenDotaGameObject{}, err

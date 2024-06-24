@@ -25,12 +25,14 @@ var (
 		tTwo := (*app.DiscordService).GetProperties().TeamTwo
 		for _, u := range props.TeamOne.Players {
 			if err := s.GuildMemberMove(i.GuildID, u.DiscordID, &tOne); err != nil {
-				return
+				app.Logger.Error(fmt.Sprintf("%v", err))
+				continue
 			}
 		}
 		for _, u := range props.TeamTwo.Players {
 			if err := s.GuildMemberMove(i.GuildID, u.DiscordID, &tTwo); err != nil {
-				return
+				app.Logger.Error(fmt.Sprintf("%v", err))
+				continue
 			}
 		}
 
