@@ -1,18 +1,15 @@
 package discord
 
 import (
-	"context"
-	"dota-discord-bot/src/internal/discord/application"
-	dynamodbrepo "dota-discord-bot/src/internal/dynamodb/repository"
-	dynamodbsvc "dota-discord-bot/src/internal/dynamodb/service"
+	discordsignuphandler "dota-discord-bot/src/discord-signup-handler"
+	db "dota-discord-bot/src/internal/database/mysql"
+	"dota-discord-bot/src/internal/discord"
 	kungdotarepo "dota-discord-bot/src/internal/kungdota/repository"
 	kungdotasvc "dota-discord-bot/src/internal/kungdota/service"
 	opendotarepo "dota-discord-bot/src/internal/opendota/repository"
 	opendotasvc "dota-discord-bot/src/internal/opendota/service"
 	steamdotarepo "dota-discord-bot/src/internal/steamdota/repository"
 	steamdotasvc "dota-discord-bot/src/internal/steamdota/service"
-
-	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 
 	"net/http"
 	"net/http/cookiejar"
@@ -26,15 +23,10 @@ var startSignupCmd = &cobra.Command{
 	Run: startSignupBot,
 }
 
-var signupBot application.Application
+var signupBot discord.Application
 
 func init() {
 	config, err := NewConfig()
-	if err != nil {
-		panic(err)
-	}
-
-	awsConfig, err := awsconfig.LoadDefaultConfig(context.Background())
 	if err != nil {
 		panic(err)
 	}
@@ -44,8 +36,8 @@ func init() {
 		panic(err)
 	}
 
-	dsvc := application.NewDiscordService(logger,
-		application.NewConfig(config.Token, "Bot", config.SignUp, config.TeamOne, config.TeamTwo),
+	dsvc := discordsignuphandler.NewDiscordService(logger,
+		discordsignuphandler.NewConfig(config.Token, "Bot", config.SignUp),
 	)
 
 	jar, err := cookiejar.New(nil)
@@ -70,20 +62,13 @@ func init() {
 			opendotarepo.NewConfig(config.SteamKey)),
 	)
 
-	dydbsvc := dynamodbsvc.NewDynamodbService(logger,
-		dynamodbrepo.NewDynamodbRepository(logger,
-			dynamodbrepo.NewConfig(awsConfig)),
-	)
+	dbr := db.NewMySqlRepository(logger, db.NewConfig(config.MySqlString))
 
-	misc := application.Misc{
-		SuperDuperAdmin: config.SuperDuperAdmin,
-	}
-
-	signupBot = application.NewApplication(logger, &dsvc, &ksvc, &ssvc, &osvc, &dydbsvc, &misc)
+	signupBot = discordsignuphandler.NewApplication(logger, dsvc, ksvc, ssvc, osvc, dbr)
 }
 
 func startSignupBot(cmd *cobra.Command, _ []string) {
-	signupBot.RunSignUp()
+	signupBot.Run()
 }
 
 func init() {

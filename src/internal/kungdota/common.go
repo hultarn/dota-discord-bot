@@ -25,15 +25,15 @@ type CoolaStats struct {
 }
 
 type ShuffledTeams struct {
-	TeamOne      Players2
-	TeamTwo      Players2
-	FirstPicker  Players
-	SecondPicker Players
+	TeamOne      Players
+	TeamTwo      Players
+	FirstPicker  Player
+	SecondPicker Player
 	EloDiff      int
 }
 
 // TODO
-func (rx Players2) Names() []string {
+func (rx Players) Names() []string {
 	r := make([]string, 0)
 
 	for _, p := range rx.Players {
@@ -43,11 +43,11 @@ func (rx Players2) Names() []string {
 	return r
 }
 
-type Players2 struct {
-	Players []Players `json:"players"`
+type Players struct {
+	Players []Player `json:"players"`
 }
 
-type Players struct {
+type Player struct {
 	ID              int    `json:"id"`
 	Username        string `json:"username"`
 	EloRating       int    `json:"eloRating"`

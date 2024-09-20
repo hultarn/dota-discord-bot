@@ -10,14 +10,15 @@ import (
 )
 
 type Config struct {
-	Token           string
-	SignUp          string
-	TeamOne         string
-	TeamTwo         string
-	SteamKey        string
-	DotaID          string
-	KungDotaID      string
-	SuperDuperAdmin []string
+	Token       string
+	SignUp      string
+	TeamOne     string
+	TeamTwo     string
+	SteamKey    string
+	DotaID      string
+	KungDotaID  string
+	Admin       []string
+	MySqlString string
 }
 
 func NewConfig() (Config, error) {
@@ -65,19 +66,25 @@ func NewConfig() (Config, error) {
 		return Config{}, fmt.Errorf("err loading .env")
 	}
 
-	superDuperAdmin, ok := os.LookupEnv("SUPER_DUPER_ADMIN")
+	admin, ok := os.LookupEnv("ADMIN")
+	if !ok {
+		return Config{}, fmt.Errorf("err loading .env")
+	}
+
+	mySqlString, ok := os.LookupEnv("MYSQL_STRING")
 	if !ok {
 		return Config{}, fmt.Errorf("err loading .env")
 	}
 
 	return Config{
-		Token:           discordToken,
-		SignUp:          signUp,
-		TeamOne:         teamOne,
-		TeamTwo:         teamTwo,
-		SteamKey:        steamKey,
-		DotaID:          dotaID,
-		KungDotaID:      kungDotaID,
-		SuperDuperAdmin: strings.Split(superDuperAdmin, ","),
+		Token:       discordToken,
+		SignUp:      signUp,
+		TeamOne:     teamOne,
+		TeamTwo:     teamTwo,
+		SteamKey:    steamKey,
+		DotaID:      dotaID,
+		KungDotaID:  kungDotaID,
+		Admin:       strings.Split(admin, ","),
+		MySqlString: mySqlString,
 	}, nil
 }

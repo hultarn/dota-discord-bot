@@ -18,25 +18,18 @@ import (
 )
 
 type KungdotaService interface {
-	GetPlayersByNames(ctx context.Context, ids []string) (kungdota.Players2, error)
+	GetPlayersByNames(ctx context.Context, ids []string) (kungdota.Players, error)
 	GetPlayersByDiscordIDs(ctx context.Context, ids []string) ([]string, error)
-	ShufflePlayers(ctx context.Context, p kungdota.Players2) error
-	GetProperties() Properties
+	ShufflePlayers(ctx context.Context, p kungdota.Players) (kungdota.ShuffledTeams, error)
 	PostMatch(m opendota.OpenDotaGameObject) error
-	SignUp(ctx context.Context, username string, i int) (map[string][]string, error)
+	// SignUp(ctx context.Context, username string, i int) (map[string][]string, error)
 	Update(ctx context.Context, username string) (map[string][]string, error)
 }
 
 type kungdotaService struct {
 	logger             *zap.Logger
 	kungdotaRepository repository.KungdotaRepository
-	properties         Properties
 	leagueId           string
-}
-
-// priv?
-type Properties struct {
-	ShuffledTeams kungdota.ShuffledTeams
 }
 
 func NewKungdotaService(logger *zap.Logger, kungdotaRepository repository.KungdotaRepository, leagueId string) KungdotaService {
@@ -138,7 +131,7 @@ func (rx kungdotaService) PostMatch(m opendota.OpenDotaGameObject) error {
 	return rx.kungdotaRepository.PostMatch(t)
 }
 
-func (rx kungdotaService) GetPlayersByNames(ctx context.Context, ids []string) (kungdota.Players2, error) {
+func (rx kungdotaService) GetPlayersByNames(ctx context.Context, ids []string) (kungdota.Players, error) {
 	return rx.kungdotaRepository.GetByNames(ctx, ids)
 }
 
@@ -146,78 +139,69 @@ func (rx kungdotaService) GetPlayersByDiscordIDs(ctx context.Context, ids []stri
 	return rx.kungdotaRepository.GetByDiscordIDs(ctx, ids)
 }
 
-func (rx *kungdotaService) GetProperties() Properties {
-	return rx.properties
-}
+func (rx *kungdotaService) ShufflePlayers(ctx context.Context, p kungdota.Players) (kungdota.ShuffledTeams, error) {
+	var teamPairs [][][]int
 
-func (rx *kungdotaService) ShufflePlayers(ctx context.Context, p kungdota.Players2) error {
-	//Magic :)
-	pList := make([][][]int, 0)
-	list := combin.Combinations(10, 5)
-	for i := 0; i < len(list)/2; i++ {
-		pList = append(pList, [][]int{list[i], list[len(list)-(i+1)]})
+	// Generate all possible 5v5 team combinations
+	allCombinations := combin.Combinations(10, 5)
+	for i := 0; i < len(allCombinations)/2; i++ {
+		teamPairs = append(teamPairs, [][]int{allCombinations[i], allCombinations[len(allCombinations)-(i+1)]})
 	}
 
-	type tmp2 struct {
+	type teamBalance struct {
 		elo   int
-		lista [][]int
+		teams [][]int
 	}
 
-	tList := make([]tmp2, 0)
-	for _, teams := range pList {
-		tot1 := 0.0
-		tot2 := 0.0
+	var balancedTeams []teamBalance
+	for _, teamPair := range teamPairs {
+		teamOneElo, teamTwoElo := 0.0, 0.0
 
-		for _, i := range teams[0] {
-			tot1 += float64(p.Players[i].EloRating)
+		for _, idx := range teamPair[0] {
+			teamOneElo += float64(p.Players[idx].EloRating)
 		}
 
-		for _, i := range teams[1] {
-			tot2 += float64(p.Players[i].EloRating)
+		for _, idx := range teamPair[1] {
+			teamTwoElo += float64(p.Players[idx].EloRating)
 		}
 
-		tList = append(tList, tmp2{
-			elo:   int(math.Abs(tot1 - tot2)),
-			lista: teams,
+		balancedTeams = append(balancedTeams, teamBalance{
+			elo:   int(math.Abs(teamOneElo - teamTwoElo)),
+			teams: teamPair,
 		})
 	}
 
-	sort.Slice(tList, func(i, j int) bool {
-		return tList[i].elo < tList[j].elo
+	sort.Slice(balancedTeams, func(i, j int) bool {
+		return balancedTeams[i].elo < balancedTeams[j].elo
 	})
 
-	l := tList[rand.Intn(5)]
+	// Select one of the top 5 most balanced team pairs randomly
+	selectedTeam := balancedTeams[rand.Intn(5)]
 
-	t1 := make([]kungdota.Players, 0)
-	t2 := make([]kungdota.Players, 0)
-
-	for _, i := range l.lista[0] {
-		t1 = append(t1, p.Players[i])
+	var teamOne, teamTwo []kungdota.Player
+	for _, i := range selectedTeam.teams[0] {
+		teamOne = append(teamOne, p.Players[i])
 	}
-	for _, i := range l.lista[1] {
-		t2 = append(t2, p.Players[i])
+	for _, i := range selectedTeam.teams[1] {
+		teamTwo = append(teamTwo, p.Players[i])
 	}
 
-	var a kungdota.Players2
-	var b kungdota.Players2
-
+	var shuffledTeamOne, shuffledTeamTwo kungdota.Players
 	if rand.Intn(2) == 1 {
-		a.Players = t1
-		b.Players = t2
+		shuffledTeamOne.Players = teamOne
+		shuffledTeamTwo.Players = teamTwo
 	} else {
-		a.Players = t2
-		b.Players = t1
+		shuffledTeamOne.Players = teamTwo
+		shuffledTeamTwo.Players = teamOne
 	}
 
-	rx.properties.ShuffledTeams = kungdota.ShuffledTeams{
-		TeamOne:      a,
-		TeamTwo:      b,
-		FirstPicker:  a.Players[rand.Intn(5)],
-		SecondPicker: b.Players[rand.Intn(5)],
-		EloDiff:      tasd.elo,
-	}
-
-	return nil
+	return kungdota.ShuffledTeams{
+		TeamOne:      shuffledTeamOne,
+		TeamTwo:      shuffledTeamTwo,
+		FirstPicker:  shuffledTeamOne.Players[rand.Intn(5)],
+		SecondPicker: shuffledTeamTwo.Players[rand.Intn(5)],
+		EloDiff:      selectedTeam.elo,
+	}, nil
 }
 
 func (rx *kungdotaService) SignUp(ctx context.Context, username string, i int) (map[string][]string, error) {

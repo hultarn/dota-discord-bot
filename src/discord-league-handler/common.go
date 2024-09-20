@@ -1,4 +1,4 @@
-package application
+package discordleaguehandler
 
 import (
 	"github.com/bwmarrin/discordgo"

@@ -1,11 +1,12 @@
-package application
+package discordleaguehandler
 
 import (
 	"context"
-	"dota-discord-bot/src/internal/kungdota/service"
+	"dota-discord-bot/src/internal/kungdota"
 	"fmt"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/google/uuid"
 )
 
 var (
@@ -79,19 +80,25 @@ var (
 	ShuffleCommandHandler = func(s *discordgo.Session, i *discordgo.InteractionCreate, app application) {
 		app.Logger.Info(fmt.Sprintf("ShuffleCommandHandler: shuffle started by user: %s#%s", i.Member.User.Username, i.Member.User.Discriminator))
 
-		p, err := (*app.KungdotaService).GetPlayersByNames(context.Background(), getNames(i))
+		p, err := app.KungdotaService.GetPlayersByNames(context.Background(), getNames(i))
 		if err != nil {
 			app.Logger.Error(fmt.Sprintf("ShuffleCommandHandler ShufflePlayers failed %s", err))
 		}
 
-		if err := (*app.KungdotaService).ShufflePlayers(context.Background(), p); err != nil {
+		shuffledTeams, err := app.KungdotaService.ShufflePlayers(context.Background(), p)
+		if err != nil {
 			app.Logger.Error(fmt.Sprintf("ShuffleCommandHandler ShufflePlayers failed %s", err))
+			return
+		}
+
+		if err = app.Repository.InsertShuffledPlayers(context.Background(), shuffledTeams, uuid.New()); err != nil {
+			app.Logger.Error(fmt.Sprintf("ShuffleCommandHandler InsertShuffledPlayers failed %s", err))
 			return
 		}
 
 		if err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: createResponseData((*app.KungdotaService).GetProperties()),
+			Data: createResponseData(shuffledTeams),
 		}); err != nil {
 			app.Logger.Error(fmt.Sprintf("ShuffleCommandHandler: InteractionRespond failed %s", err))
 			return
@@ -110,33 +117,30 @@ func getNames(i *discordgo.InteractionCreate) []string {
 	return r
 }
 
-func createResponseData(p service.Properties) *discordgo.InteractionResponseData {
-	// btns := []discordgo.MessageComponent{
-	// 	discordgo.Button{
-	// 		Label:    "Move",
-	// 		Style:    1,
-	// 		Disabled: false,
-	// 		Emoji:    discordgo.ComponentEmoji{},
-	// 		URL:      "",
-	// 		CustomID: `move_btn`,
-	// 	},
-	// 	discordgo.Button{
-	// 		Label:    "Update",
-	// 		Style:    1,
-	// 		Disabled: false,
-	// 		Emoji:    discordgo.ComponentEmoji{},
-	// 		URL:      "",
-	// 		CustomID: `update_btn`,
-	// 	},
-	// 	discordgo.Button{
-	// 		Label:    "Cancel",
-	// 		Style:    4,
-	// 		Disabled: false,
-	// 		Emoji:    discordgo.ComponentEmoji{},
-	// 		URL:      "",
-	// 		CustomID: `cancel_btn`,
-	// 	},
-	// }
+func createResponseData(p kungdota.ShuffledTeams) *discordgo.InteractionResponseData {
+	btns := []discordgo.MessageComponent{
+		discordgo.Button{
+			Label:    "Move",
+			Style:    1,
+			Disabled: false,
+			URL:      "",
+			CustomID: `move_btn`,
+		},
+		discordgo.Button{
+			Label:    "Update",
+			Style:    1,
+			Disabled: false,
+			URL:      "",
+			CustomID: `update_btn`,
+		},
+		discordgo.Button{
+			Label:    "Cancel",
+			Style:    4,
+			Disabled: false,
+			URL:      "",
+			CustomID: `cancel_btn`,
+		},
+	}
 
 	embeds := []*discordgo.MessageEmbed{
 		{
@@ -144,22 +148,22 @@ func createResponseData(p service.Properties) *discordgo.InteractionResponseData
 			Title: `Team shuffle`,
 			Description: fmt.Sprintf(
 				"%d\n%s\n%s\n%s\n%s",
-				p.ShuffledTeams.EloDiff,
-				p.ShuffledTeams.TeamOne.Names(),
-				p.ShuffledTeams.TeamTwo.Names(),
-				p.ShuffledTeams.FirstPicker.Username,
-				p.ShuffledTeams.SecondPicker.Username,
+				p.EloDiff,
+				p.TeamOne.Names(),
+				p.TeamTwo.Names(),
+				p.FirstPicker.Username,
+				p.SecondPicker.Username,
 			),
 			Color: 0xff00ae,
 		},
 	}
 
 	return &discordgo.InteractionResponseData{
-		// Components: []discordgo.MessageComponent{
-		// 	discordgo.ActionsRow{
-		// 		Components: btns,
-		// 	},
-		// },
+		Components: []discordgo.MessageComponent{
+			discordgo.ActionsRow{
+				Components: btns,
+			},
+		},
 		Embeds: embeds,
 	}
 }

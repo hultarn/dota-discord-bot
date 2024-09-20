@@ -1,10 +1,11 @@
-package application
+package discordleaguehandler
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/google/uuid"
 )
 
 var (
@@ -29,19 +30,19 @@ var (
 		idx := int((tmp[0].Value).(float64))
 
 		//TODO: This is pretty dumb...
-		p, err := (*app.DynamodbService).GetCurrentPlayers(context.Background(), idx)
+		p, err := app.Repository.GetCurrentPlayers(context.Background(), idx)
 		if err != nil {
 			app.Logger.Error(fmt.Sprintf("ShuffleSmartCommandHandler ShufflePlayers failed %v", err))
 			return
 		}
 
-		p2, err := (*app.KungdotaService).GetPlayersByDiscordIDs(context.Background(), p)
+		p2, err := app.KungdotaService.GetPlayersByDiscordIDs(context.Background(), p)
 		if err != nil {
 			app.Logger.Error(fmt.Sprintf("ShuffleSmartCommandHandler ShufflePlayers failed %v", err))
 			return
 		}
 
-		p3, err := (*app.KungdotaService).GetPlayersByNames(context.Background(), p2)
+		p3, err := app.KungdotaService.GetPlayersByNames(context.Background(), p2)
 		if err != nil {
 			app.Logger.Error(fmt.Sprintf("ShuffleSmartCommandHandler GetPlayersByNames failed %v", err))
 			return
@@ -52,13 +53,22 @@ var (
 			return
 		}
 
-		if err := (*app.KungdotaService).ShufflePlayers(context.Background(), p3); err != nil {
+		shuffledTeams, err := app.KungdotaService.ShufflePlayers(context.Background(), p3)
+		if err != nil {
 			app.Logger.Error(fmt.Sprintf("ShuffleSmartCommandHandler ShufflePlayers failed %s", err))
 			return
 		}
 
-		teams := (*app.KungdotaService).GetProperties()
-		fmt.Println(teams)
+		if err = app.Repository.InsertShuffledPlayers(context.Background(), shuffledTeams, uuid.New()); err != nil {
+			app.Logger.Error(fmt.Sprintf("ShuffleSmartCommandHandler InsertShuffledPlayers failed %s", err))
+			return
+		}
+
+		teams, err := app.Repository.GetShuffledTeams(context.Background())
+		if err != nil {
+			app.Logger.Error(fmt.Sprintf("ShuffleSmartCommandHandler failed invalid amount %d", len(p3.Players)))
+			return
+		}
 		data := createResponseData(teams)
 
 		if err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{

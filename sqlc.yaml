@@ -1,0 +1,12 @@
+version: "2"
+sql:
+  - schema: "schema.sql"  # Path to your schema file(s)
+    queries: "queries.sql"  # Path to your SQL queries file(s)
+    engine: "mysql"  # Specify the database engine as MySQL
+    gen:
+      go:
+        package: "db"  # Name of the Go package where code will be generated
+        out: "internal/db"  # Output directory for generated code
+        sql_package: "sqlc"  # Package name for the SQLC generated code
+        json_tags: true
+        emit_empty_slices: true  # emit empty slices instead of nil slices

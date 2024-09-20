@@ -5,21 +5,18 @@ import (
 	"context"
 	"dota-discord-bot/src/internal/kungdota"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
-	"time"
 
 	"go.uber.org/zap"
 )
 
 type KungdotaRepository interface {
-	GetByNames(ctx context.Context, ids []string) (kungdota.Players2, error)
+	GetByNames(ctx context.Context, ids []string) (kungdota.Players, error)
 	GetByDiscordIDs(ctx context.Context, ids []string) ([]string, error)
 	PostMatch(m kungdota.Match) error
-	GetAllPlayers() (kungdota.Players2, error)
+	GetAllPlayers() (kungdota.Players, error)
 	SignUp(ctx context.Context, username string, i int) (map[string][]string, error)
 	Update(ctx context.Context, username string) (map[string][]string, error)
 }
@@ -28,6 +25,16 @@ type kungdotaRepository struct {
 	config     config
 	logger     *zap.Logger
 	httpClient http.Client
+}
+
+// SignUp implements KungdotaRepository.
+func (rx *kungdotaRepository) SignUp(ctx context.Context, username string, i int) (map[string][]string, error) {
+	panic("unimplemented")
+}
+
+// Update implements KungdotaRepository.
+func (rx *kungdotaRepository) Update(ctx context.Context, username string) (map[string][]string, error) {
+	panic("unimplemented")
 }
 
 type config struct {
@@ -59,36 +66,36 @@ func (rx kungdotaRepository) PostMatch(m kungdota.Match) error {
 	return err
 }
 
-func (rx kungdotaRepository) GetAllPlayers() (kungdota.Players2, error) {
-	resp, err := rx.httpClient.Get("https://api.bollsvenskan.jacobadlers.com/player")
+func (rx kungdotaRepository) GetAllPlayers() (kungdota.Players, error) {
+	resp, err := rx.httpClient.Get("https://api.bollsvenskan.jacobadlers.com/player") // TODO: Kan också va timeout
 	if err != nil {
 		rx.logger.Error("KungdotaRepository.GetAllPlayers failed")
-		return kungdota.Players2{}, err
+		return kungdota.Players{}, err
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		rx.logger.Error("KungdotaRepository.GetAllPlayers failed")
-		return kungdota.Players2{}, err
+		return kungdota.Players{}, err
 	}
 
-	var players = kungdota.Players2{}
+	var players = kungdota.Players{}
 	if err := json.Unmarshal(body, &players); err != nil {
 		rx.logger.Error("KungdotaRepository.GetAllPlayers failed")
-		return kungdota.Players2{}, err
+		return kungdota.Players{}, err
 	}
 
 	return players, nil
 }
 
-func (rx kungdotaRepository) GetByNames(ctx context.Context, ids []string) (kungdota.Players2, error) {
+func (rx kungdotaRepository) GetByNames(ctx context.Context, ids []string) (kungdota.Players, error) {
 	players, err := rx.GetAllPlayers()
 	if err != nil {
 		rx.logger.Error("KungdotaRepository.GetByNames failed")
-		return kungdota.Players2{}, err
+		return kungdota.Players{}, err
 	}
 
-	pList := make([]kungdota.Players, 0)
+	pList := make([]kungdota.Player, 0)
 	for _, id := range ids {
 		for _, p := range players.Players {
 			if p.Username == id {
@@ -97,11 +104,11 @@ func (rx kungdotaRepository) GetByNames(ctx context.Context, ids []string) (kung
 			}
 		}
 		rx.logger.Error("KungdotaRepository.GetByNames player not found")
-		return kungdota.Players2{}, fmt.Errorf("player not found with name %s", id)
+		return kungdota.Players{}, fmt.Errorf("player not found with name %s", id)
 	found:
 	}
-	
-	return kungdota.Players2{
+
+	return kungdota.Players{
 		Players: pList,
 	}, nil
 }

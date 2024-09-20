@@ -1,10 +1,9 @@
 package discord
 
 import (
-	"context"
-	"dota-discord-bot/src/internal/discord/application"
-	dynamodbrepo "dota-discord-bot/src/internal/dynamodb/repository"
-	dynamodbsvc "dota-discord-bot/src/internal/dynamodb/service"
+	discordleaguehandler "dota-discord-bot/src/discord-league-handler"
+	db "dota-discord-bot/src/internal/database/mysql"
+	"dota-discord-bot/src/internal/discord"
 	kungdotarepo "dota-discord-bot/src/internal/kungdota/repository"
 	kungdotasvc "dota-discord-bot/src/internal/kungdota/service"
 	opendotarepo "dota-discord-bot/src/internal/opendota/repository"
@@ -13,7 +12,6 @@ import (
 	steamdotasvc "dota-discord-bot/src/internal/steamdota/service"
 	"net/http"
 
-	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )
@@ -23,15 +21,10 @@ var startDiscordBotCmd = &cobra.Command{
 	Run: startLeagueBot,
 }
 
-var leagueBot application.Application
+var leagueBot discord.Application
 
 func init() {
 	config, err := NewConfig()
-	if err != nil {
-		panic(err)
-	}
-
-	awsConfig, err := awsconfig.LoadDefaultConfig(context.Background())
 	if err != nil {
 		panic(err)
 	}
@@ -41,8 +34,8 @@ func init() {
 		panic(err)
 	}
 
-	dsvc := application.NewDiscordService(logger,
-		application.NewConfig(config.Token, "Bot", config.SignUp, config.TeamOne, config.TeamTwo),
+	dsvc := discordleaguehandler.NewDiscordService(logger,
+		discordleaguehandler.NewConfig(config.Token, "Bot", config.SignUp, config.TeamOne, config.TeamTwo),
 	)
 
 	httpC := http.Client{}
@@ -63,12 +56,9 @@ func init() {
 			opendotarepo.NewConfig(config.SteamKey)),
 	)
 
-	dydbsvc := dynamodbsvc.NewDynamodbService(logger,
-		dynamodbrepo.NewDynamodbRepository(logger,
-			dynamodbrepo.NewConfig(awsConfig)),
-	)
+	dbr := db.NewMySqlRepository(logger, db.NewConfig(config.MySqlString))
 
-	leagueBot = application.NewApplication(logger, &dsvc, &ksvc, &ssvc, &osvc, &dydbsvc, nil)
+	leagueBot = discordleaguehandler.NewApplication(logger, dsvc, ksvc, ssvc, osvc, dbr, nil)
 }
 
 func startLeagueBot(cmd *cobra.Command, _ []string) {
