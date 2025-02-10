@@ -66,7 +66,7 @@ func (rx mySqlRepository) GetCurrent(ctx context.Context) (database.Message, err
 func (rx mySqlRepository) GetByCurrentWeekAndYear(ctx context.Context) (string, error) {
 	entry, err := rx.GetCurrent(ctx)
 	if err != nil {
-		rx.logger.Error("DynamodbRepository.GetByCurrentWeekAndYear failed")
+		rx.logger.Error("mySqlRepository.GetByCurrentWeekAndYear failed")
 		return "", err
 	}
 
@@ -86,14 +86,14 @@ func (rx mySqlRepository) InsertCurrentWeekAndYear(ctx context.Context, id strin
 		Game_3:    uuid.New(),
 	}
 
-	rx.logger.Info("DynamodbRepository.Insert")
+	rx.logger.Info("mySqlRepository.Insert")
 
 	_, err := rx.db.Exec(
 		"INSERT INTO messages (message_id, week, `year`, game_1, game_2, game_3) VALUES (?, ?, ?, ?, ?, ?);",
 		e.MessageID, e.Week, e.Year, e.Game_1.String(), e.Game_2.String(), e.Game_3.String(),
 	)
 	if err != nil {
-		rx.logger.Error("DynamodbRepository.InsertCurrentWeekAndYear failed")
+		rx.logger.Error("mySqlRepository.InsertCurrentWeekAndYear failed")
 		return err
 	}
 
@@ -101,22 +101,30 @@ func (rx mySqlRepository) InsertCurrentWeekAndYear(ctx context.Context, id strin
 }
 
 func (rx mySqlRepository) GetCurrentPlayers(ctx context.Context, idx int) ([]string, error) {
-	_, err := rx.GetCurrent(ctx)
+	entry, err := rx.GetCurrent(ctx)
 	if err != nil {
-		rx.logger.Error("DynamodbRepository.GetCurrentPlayers failed")
+		rx.logger.Error("mySqlRepository.GetCurrentPlayers failed")
+		return nil, err
+	}
+
+	var signs []database.Sign
+	switch idx {
+	case 1:
+		signs, err = rx.GetSigedPlayersByGame(ctx, entry.Game_1.String())
+	case 2:
+		signs, err = rx.GetSigedPlayersByGame(ctx, entry.Game_2.String())
+	case 3:
+		signs, err = rx.GetSigedPlayersByGame(ctx, entry.Game_3.String())
+	}
+	if err != nil {
+		rx.logger.Error("mySqlRepository.GetCurrentPlayers failed")
 		return nil, err
 	}
 
 	var ret []string
-
-	// switch idx {
-	// case 1:
-	// 	ret = entry.Game_1
-	// case 2:
-	// 	ret = entry.Game_2
-	// case 3:
-	// 	ret = entry.Game_3
-	// }
+	for _, sign := range signs {
+		ret = append(ret, sign.DiscordID)
+	}
 
 	return ret, nil
 }
@@ -166,11 +174,11 @@ func (rx mySqlRepository) InsertPlayer(ctx context.Context, id string, i int) er
 func (rx mySqlRepository) ClearPlayers(ctx context.Context) error {
 	e, err := rx.GetCurrent(ctx)
 	if err != nil {
-		rx.logger.Error("DynamodbRepository.ClearPlayers failed")
+		rx.logger.Error("mySqlRepository.ClearPlayers failed")
 		return err
 	}
 
-	rx.logger.Info("DynamodbRepository.ClearPlayers")
+	rx.logger.Info("mySqlRepository.ClearPlayers")
 
 	_, err = rx.db.Exec(`DELETE FROM signs WHERE game_id = ? AND discord_id = ?;`, e, e)
 	if err != nil {

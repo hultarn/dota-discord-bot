@@ -10,7 +10,9 @@
             "args": [
                 "discord",
                 "start-league-bot",
-            ],
+                "--env",
+                "${workspaceFolder}"
+            ]
         },
         {
             "name": "discord-start-signup-bot",
@@ -21,7 +23,9 @@
             "args": [
                 "discord",
                 "start-signup-bot",
-            ],
-        },
+                "--env",
+                "${workspaceFolder}"
+            ]
+        }
     ]
 }

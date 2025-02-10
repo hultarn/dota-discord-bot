@@ -51,6 +51,7 @@ func (rx *application) Run() {
 		rx.Logger.Error("Run failed")
 		return
 	}
+
 	if err := rx.DiscordService.AddHandlers(rx); err != nil {
 		rx.Logger.Error("Run failed")
 		return
@@ -66,8 +67,8 @@ func (rx *application) Run() {
 	signal.Notify(stop, os.Interrupt)
 	<-stop
 
-	if err := rx.DiscordService.RemoveCommands(rx); err != nil {
-		rx.Logger.Error("Run failed")
-		return
-	}
+	// if err := rx.DiscordService.RemoveCommands(rx); err != nil {
+	// 	rx.Logger.Error("Run failed")
+	// 	return
+	// }
 }

@@ -1,11 +1,11 @@
 services:
-  dotadiscordbot:
-    image: dotadiscordbot
-    build:
-      context: .
-      dockerfile: ./Dockerfile
-    ports:
-      - 3000:3000
+  # dotadiscordbot:
+  #   image: dotadiscordbot
+  #   build:
+  #     context: .
+  #     dockerfile: ./Dockerfile
+  #   ports:
+  #     - 3000:3000
   mysql:
     image: mysql:8.0
     container_name: db-dota

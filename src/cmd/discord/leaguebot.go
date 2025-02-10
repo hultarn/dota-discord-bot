@@ -22,9 +22,15 @@ var startDiscordBotCmd = &cobra.Command{
 }
 
 var leagueBot discord.Application
+var envPathLeague string
 
 func init() {
-	config, err := NewConfig()
+	startDiscordBotCmd.Flags().StringVarP(&envPathLeague, "env", "e", "", "Path to the .env file")
+	RootCmd.AddCommand(startDiscordBotCmd)
+}
+
+func initLeagueBot() {
+	config, err := NewConfig(envPathLeague)
 	if err != nil {
 		panic(err)
 	}
@@ -62,9 +68,6 @@ func init() {
 }
 
 func startLeagueBot(cmd *cobra.Command, _ []string) {
+	initLeagueBot()
 	leagueBot.Run()
-}
-
-func init() {
-	RootCmd.AddCommand(startDiscordBotCmd)
 }

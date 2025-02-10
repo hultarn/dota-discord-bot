@@ -64,16 +64,9 @@ var (
 			return
 		}
 
-		teams, err := app.Repository.GetShuffledTeams(context.Background())
-		if err != nil {
-			app.Logger.Error(fmt.Sprintf("ShuffleSmartCommandHandler failed invalid amount %d", len(p3.Players)))
-			return
-		}
-		data := createResponseData(teams)
-
 		if err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: data,
+			Data: createResponseData(shuffledTeams),
 		}); err != nil {
 			app.Logger.Error(fmt.Sprintf("ShuffleSmartCommandHandler: InteractionRespond failed %s", err))
 			return

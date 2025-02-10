@@ -3,7 +3,6 @@ package discord
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/joho/godotenv"
@@ -21,13 +20,8 @@ type Config struct {
 	MySqlString string
 }
 
-func NewConfig() (Config, error) {
-	ex, err := os.Executable()
-	if err != nil {
-		return Config{}, fmt.Errorf("err executable path")
-	}
-	fmt.Println(filepath.Dir(ex), ex)
-	if err = godotenv.Load(fmt.Sprintf("%s/.env", filepath.Dir(ex))); err != nil {
+func NewConfig(path string) (Config, error) {
+	if err := godotenv.Load(fmt.Sprintf("%s/.env", path)); err != nil {
 		return Config{}, fmt.Errorf("err loading .env")
 	}
 

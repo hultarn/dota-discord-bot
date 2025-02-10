@@ -24,9 +24,15 @@ var startSignupCmd = &cobra.Command{
 }
 
 var signupBot discord.Application
+var envPathSignup string
 
 func init() {
-	config, err := NewConfig()
+	startSignupCmd.Flags().StringVarP(&envPathSignup, "env", "e", "", "Path to the .env file")
+	RootCmd.AddCommand(startSignupCmd)
+}
+
+func initSignupBot() {
+	config, err := NewConfig(envPathSignup)
 	if err != nil {
 		panic(err)
 	}
@@ -68,9 +74,6 @@ func init() {
 }
 
 func startSignupBot(cmd *cobra.Command, _ []string) {
+	initSignupBot()
 	signupBot.Run()
-}
-
-func init() {
-	RootCmd.AddCommand(startSignupCmd)
 }
